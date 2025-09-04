@@ -1,10 +1,13 @@
+import LoginForm from "./components/auth/LoginForm"
+import SignupForm from "./components/auth/SignupForm"
 
 function App() {
-
+  const isLoggedIn = false
 
   return (
     <>
-      <h1>Created an app</h1>
+      {isLoggedIn ? <LoginForm /> :
+        <SignupForm />}
     </>
   )
 }
