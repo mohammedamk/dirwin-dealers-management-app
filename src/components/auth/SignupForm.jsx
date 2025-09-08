@@ -21,7 +21,7 @@ import {
   useTheme,
   useMediaQuery,
   IconButton,
-  Autocomplete
+  Autocomplete,
 } from '@mui/material';
 import {
   Search,
@@ -34,101 +34,263 @@ import {
   VisibilityOff,
   Lock,
 } from '@mui/icons-material';
-import { useForm, Controller } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-
-const signupSchema = z.object({
-  shopName: z.string().min(1, 'Shop name is required'),
-  email: z.email('Invalid email address'),
-  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-  primaryContactName: z.string().min(1, 'Primary contact name is required'),
-  primaryContactEmail: z.email('Invalid email address').optional().or(z.literal('')),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^a-zA-Z0-9]/, 'Password must contain at least one special character'),
-  confirmPassword: z.string(),
-  billingAddress: z.object({
-    street: z.string().min(1, 'Street address is required'),
-    city: z.string().min(1, 'City is required'),
-    state: z.string().min(1, 'State is required'),
-    zipCode: z.string().min(5, 'Zip code must be at least 5 digits'),
-    country: z.string().min(1, 'Country is required')
-  }),
-  shippingAddress: z.object({
-    street: z.string().min(1, 'Street address is required'),
-    city: z.string().min(1, 'City is required'),
-    state: z.string().min(1, 'State is required'),
-    zipCode: z.string().min(5, 'Zip code must be at least 5 digits'),
-    country: z.string().min(1, 'Country is required')
-  }),
-  termsAccepted: z.boolean().refine(val => val === true, {
-    message: 'You must accept the terms and conditions'
-  })
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+import { useNavigate } from 'react-router';
 
 const steps = ['Shop Information', 'Account Details', 'Contact Details', 'Address', 'Review & Submit'];
 
-const SignupForm = () => {
+const SignupForm = ({ onSignup }) => {
   const [activeStep, setActiveStep] = useState(0);
+  const [formData, setFormData] = useState({
+    shopName: '',
+    email: '',
+    phone: '',
+    primaryContactName: '',
+    primaryContactEmail: '',
+    password: '',
+    confirmPassword: '',
+    billingAddress: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: ''
+    },
+    shippingAddress: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
+      country: ''
+    },
+    termsAccepted: false,
+    useSameAddress: false
+  });
+  const [errors, setErrors] = useState({});
   const [shopValidationLoading, setShopValidationLoading] = useState(false);
   const [shopValidationError, setShopValidationError] = useState('');
   const [shopValidationSuccess, setShopValidationSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [shopSuggestions, setShopSuggestions] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
   const [shopInput, setShopInput] = useState('');
+  const navigate = useNavigate();
 
-  const {
-    control,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    setError,
-    clearErrors,
-    watch,
-    setValue,
-    trigger
-  } = useForm({
-    resolver: zodResolver(signupSchema),
-    defaultValues: {
-      shopName: '',
-      email: '',
-      phone: '',
-      primaryContactName: '',
-      primaryContactEmail: '',
-      password: '',
-      confirmPassword: '',
-      billingAddress: {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: ''
-      },
-      shippingAddress: {
-        street: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        country: ''
-      },
-      termsAccepted: false,
-      useSameAddress: true
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const hasMinLength = password.length >= 8;
+    const hasLowercase = /[a-z]/.test(password);
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+
+    return {
+      isValid: hasMinLength && hasLowercase && hasUppercase && hasNumber && hasSpecialChar,
+      errors: {
+        minLength: !hasMinLength ? 'Password must be at least 8 characters' : null,
+        lowercase: !hasLowercase ? 'Password must contain at least one lowercase letter' : null,
+        uppercase: !hasUppercase ? 'Password must contain at least one uppercase letter' : null,
+        number: !hasNumber ? 'Password must contain at least one number' : null,
+        specialChar: !hasSpecialChar ? 'Password must contain at least one special character' : null
+      }
+    };
+  };
+
+  const validateField = (name, value) => {
+    let error = '';
+
+    switch (name) {
+      case 'shopName':
+        if (!value.trim()) error = 'Shop name is required';
+        break;
+      case 'email':
+        if (!value.trim()) error = 'Email is required';
+        else if (!validateEmail(value)) error = 'Invalid email address';
+        break;
+      case 'phone':
+        if (!value.trim()) error = 'Phone number is required';
+        else if (value.length < 10) error = 'Phone number must be at least 10 digits';
+        break;
+      case 'primaryContactName':
+        if (!value.trim()) error = 'Primary contact name is required';
+        break;
+      case 'primaryContactEmail':
+        if (value && !validateEmail(value)) error = 'Invalid email address';
+        break;
+      case 'password':
+        const passwordValidation = validatePassword(value);
+        if (!value.trim()) error = 'Password is required';
+        else if (!passwordValidation.isValid) {
+          const firstError = Object.values(passwordValidation.errors).find(err => err !== null);
+          error = firstError || '';
+        }
+        break;
+      case 'confirmPassword':
+        if (!value.trim()) error = 'Please confirm your password';
+        else if (value !== formData.password) error = "Passwords don't match";
+        break;
+      case 'billingAddress.street':
+        if (!value.trim()) error = 'Street address is required';
+        break;
+      case 'billingAddress.city':
+        if (!value.trim()) error = 'City is required';
+        break;
+      case 'billingAddress.state':
+        if (!value.trim()) error = 'State is required';
+        break;
+      case 'billingAddress.zipCode':
+        if (!value.trim()) error = 'Zip code is required';
+        else if (value.length < 5) error = 'Zip code must be at least 5 digits';
+        break;
+      case 'billingAddress.country':
+        if (!value.trim()) error = 'Country is required';
+        break;
+      case 'shippingAddress.street':
+        if (!formData.useSameAddress && !value.trim()) error = 'Street address is required';
+        break;
+      case 'shippingAddress.city':
+        if (!formData.useSameAddress && !value.trim()) error = 'City is required';
+        break;
+      case 'shippingAddress.state':
+        if (!formData.useSameAddress && !value.trim()) error = 'State is required';
+        break;
+      case 'shippingAddress.zipCode':
+        if (!formData.useSameAddress && !value.trim()) error = 'Zip code is required';
+        else if (!formData.useSameAddress && value.length < 5) error = 'Zip code must be at least 5 digits';
+        break;
+      case 'shippingAddress.country':
+        if (!formData.useSameAddress && !value.trim()) error = 'Country is required';
+        break;
+      case 'termsAccepted':
+        if (!value) error = 'You must accept the terms and conditions';
+        break;
+      default:
+        break;
     }
-  });
 
-  const useSameAddress = watch('useSameAddress', true);
-  // const shopNameValue = watch('shopName');
-  // const passwordValue = watch('password');
+    return error;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    console.log("name, value, type, checked ", name, value, type, checked);
+    if (type === 'checkbox') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: checked
+      }));
+
+      if (name === 'useSameAddress' && checked) {
+        console.log("clicked useSameAddress");
+
+        setFormData(prev => ({
+          ...prev,
+          shippingAddress: { ...prev.billingAddress }
+        }));
+      }
+    } else if (name.includes('.')) {
+      const [parent, child] = name.split('.');
+      setFormData(prev => ({
+        ...prev,
+        [parent]: {
+          ...prev[parent],
+          [child]: value
+        }
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const validateStep = (step) => {
+    const newErrors = {};
+
+    switch (step) {
+      case 0:
+        const shopNameError = validateField('shopName', formData.shopName);
+        if (shopNameError) newErrors.shopName = shopNameError;
+        break;
+      case 1:
+        const emailError = validateField('email', formData.email);
+        if (emailError) newErrors.email = emailError;
+
+        const passwordError = validateField('password', formData.password);
+        if (passwordError) newErrors.password = passwordError;
+
+        const confirmPasswordError = validateField('confirmPassword', formData.confirmPassword);
+        if (confirmPasswordError) newErrors.confirmPassword = confirmPasswordError;
+        break;
+      case 2:
+        const phoneError = validateField('phone', formData.phone);
+        if (phoneError) newErrors.phone = phoneError;
+
+        const primaryContactNameError = validateField('primaryContactName', formData.primaryContactName);
+        if (primaryContactNameError) newErrors.primaryContactName = primaryContactNameError;
+
+        const primaryContactEmailError = validateField('primaryContactEmail', formData.primaryContactEmail);
+        if (primaryContactEmailError) newErrors.primaryContactEmail = primaryContactEmailError;
+        break;
+      case 3:
+        const billingStreetError = validateField('billingAddress.street', formData.billingAddress.street);
+        if (billingStreetError) newErrors['billingAddress.street'] = billingStreetError;
+
+        const billingCityError = validateField('billingAddress.city', formData.billingAddress.city);
+        if (billingCityError) newErrors['billingAddress.city'] = billingCityError;
+
+        const billingStateError = validateField('billingAddress.state', formData.billingAddress.state);
+        if (billingStateError) newErrors['billingAddress.state'] = billingStateError;
+
+        const billingZipError = validateField('billingAddress.zipCode', formData.billingAddress.zipCode);
+        if (billingZipError) newErrors['billingAddress.zipCode'] = billingZipError;
+
+        const billingCountryError = validateField('billingAddress.country', formData.billingAddress.country);
+        if (billingCountryError) newErrors['billingAddress.country'] = billingCountryError;
+
+        if (!formData.useSameAddress) {
+          const shippingStreetError = validateField('shippingAddress.street', formData.shippingAddress.street);
+          if (shippingStreetError) newErrors['shippingAddress.street'] = shippingStreetError;
+
+          const shippingCityError = validateField('shippingAddress.city', formData.shippingAddress.city);
+          if (shippingCityError) newErrors['shippingAddress.city'] = shippingCityError;
+
+          const shippingStateError = validateField('shippingAddress.state', formData.shippingAddress.state);
+          if (shippingStateError) newErrors['shippingAddress.state'] = shippingStateError;
+
+          const shippingZipError = validateField('shippingAddress.zipCode', formData.shippingAddress.zipCode);
+          if (shippingZipError) newErrors['shippingAddress.zipCode'] = shippingZipError;
+
+          const shippingCountryError = validateField('shippingAddress.country', formData.shippingAddress.country);
+          if (shippingCountryError) newErrors['shippingAddress.country'] = shippingCountryError;
+        }
+        break;
+      case 4:
+        const termsError = validateField('termsAccepted', formData.termsAccepted);
+        if (termsError) newErrors.termsAccepted = termsError;
+        break;
+      default:
+        break;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateShopNameWithGoogle = async (shopName) => {
     setShopValidationLoading(true);
@@ -136,58 +298,51 @@ const SignupForm = () => {
     setShopValidationSuccess(false);
 
     try {
-      const googleAPIKey = import.meta.env.VITE_GOOGLE_API_KEY
-      const serverURL = import.meta.env.VITE_SERVER_URL
+      const googleAPIKey = import.meta.env.VITE_GOOGLE_API_KEY;
+      const serverURL = import.meta.env.VITE_SERVER_URL;
       if (googleAPIKey) {
         const response = await fetch(
           `${serverURL}/api/getBussinessDetails`,
           {
             method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
             body: JSON.stringify({ businessName: shopName })
           }
         );
+
         if (!response.ok) {
-          throw new Error("error occured while validating shop name")
+          throw new Error("Error occurred while validating shop name");
         }
 
         const data = await response.json();
-        console.log("data............", data.predictions)
+        console.log("data............", data.predictions);
         setShopSuggestions(Array.isArray(data?.predictions) ? data.predictions : []);
       }
-
     } catch (error) {
       setShopValidationError(error?.message || 'Validation service error');
-      setError('shopName', { message: error?.message || 'Validation service error' });
+      setErrors(prev => ({
+        ...prev,
+        shopName: error?.message || 'Validation service error'
+      }));
     } finally {
       setShopValidationLoading(false);
     }
   };
 
-
   const handleNext = async () => {
-    let isValid = false;
+    const isValid = validateStep(activeStep);
 
-    if (activeStep === 0) {
-      isValid = await trigger(['shopName']);
-      if (isValid && shopValidationSuccess) {
-        setActiveStep((prevStep) => prevStep + 1);
-      } else {
-        setError('shopName', { message: 'Please search and select your shop from the list' });
+    if (isValid) {
+      if (activeStep === 0 && !shopValidationSuccess) {
+        setErrors(prev => ({
+          ...prev,
+          shopName: 'Please search and select your shop from the list'
+        }));
+        return;
       }
-    } else if (activeStep === 1) {
-      isValid = await trigger(['email', 'password', 'confirmPassword']);
-      if (isValid) setActiveStep((prevStep) => prevStep + 1);
-    } else if (activeStep === 2) {
-      isValid = await trigger(['phone', 'primaryContactName', 'primaryContactEmail']);
-      if (isValid) setActiveStep((prevStep) => prevStep + 1);
-    } else if (activeStep === 3) {
-      isValid = await trigger(['billingAddress.street', 'billingAddress.city',
-        'billingAddress.state', 'billingAddress.zipCode', 'billingAddress.country']);
-      if (!useSameAddress) {
-        isValid = await trigger(['shippingAddress.street', 'shippingAddress.city',
-          'shippingAddress.state', 'shippingAddress.zipCode', 'shippingAddress.country']);
-      }
-      if (isValid) setActiveStep((prevStep) => prevStep + 1);
+      setActiveStep((prevStep) => prevStep + 1);
     }
   };
 
@@ -195,9 +350,47 @@ const SignupForm = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
-  const onSubmit = async (data) => {
-    console.log('Form data:', data);
-    await new Promise(resolve => setTimeout(resolve, 2000));
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    const isValid = validateStep(activeStep);
+
+    try {
+      if (isValid && activeStep === steps.length - 1) {
+        setIsSubmitting(true);
+        // setSignupError('');
+
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/dealer/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Signup successful, token:', data.token);
+          // if (onSignup) {
+          //   onSignup();
+          // }
+          navigate('/login');
+        } else {
+          const errorData = await response.json();
+          // setSignupError(errorData.message || 'Signup failed. Please try again.');
+        }
+      } else if (isValid) {
+        handleNext();
+      }
+    } catch (error) {
+      // setSignupError('Signup failed. Please try again.');
+      console.error('Submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getError = (fieldName) => {
+    return errors[fieldName] || '';
   };
 
   const renderStepContent = (step) => {
@@ -211,93 +404,68 @@ const SignupForm = () => {
                 <Typography variant="h6">Shop Information</Typography>
               </Box>
 
-              <Controller
-                name="shopName"
-                control={control}
-                render={({ field }) => (
-                  <Autocomplete
-                    options={shopSuggestions}
-                    value={selectedShop}
-                    inputValue={shopInput}
-                    loading={shopValidationLoading}
-                    onInputChange={(_, newInput) => {
-                      setShopInput(newInput);
-                      setSelectedShop(null);
-                      setShopValidationSuccess(false);
-                      setValue('shopName', '');
-                      if (newInput && newInput.trim().length > 2) {
-                        validateShopNameWithGoogle(newInput.trim());
-                      } else {
-                        setShopSuggestions([]);
-                      }
-                    }}
-                    onChange={(_, newValue) => {
-                      setSelectedShop(newValue);
-                      if (newValue) {
-                        const mainText =
-                          newValue?.structured_formatting?.main_text ||
-                          newValue?.terms?.[0]?.value ||
-                          '';
-                        field.onChange(mainText);
-                        clearErrors('shopName');
-                        setShopValidationSuccess(true);
-                      } else {
-                        field.onChange('');
-                        setShopValidationSuccess(false);
-                      }
-                    }}
-                    freeSolo={false}
-                    isOptionEqualToValue={(opt, val) => opt.place_id === val.place_id}
-                    getOptionLabel={(opt) => {
-                      if (typeof opt === 'string') return opt;
-                      const main = opt?.structured_formatting?.main_text ?? '';
-                      const desc = opt?.description ?? '';
-                      return main ? main : desc;
-                    }}
-                    renderOption={(props, option) => {
-                      const main = option?.structured_formatting?.main_text ?? '';
-                      const desc = option?.description ?? '';
-                      return (
-                        <li {...props} key={option.place_id}>
-                          <Box>
-                            <Typography fontWeight={600}>{main}</Typography>
-                            <Typography variant="caption">{desc}</Typography>
-                          </Box>
-                        </li>
-                      );
-                    }}
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Search your shop on Google"
-                        fullWidth
-                        error={!!errors.shopName}
-                        helperText={
-                          errors.shopName?.message ||
-                          "Type at least 3 characters, then select your shop from the list"
-                        }
-                        // slotProps={{
-                        //   input: {
-                        //     ...params.InputProps,
-                        //     endAdornment: (
-                        //       <InputAdornment position="end">
-                        //         {shopValidationLoading ? (
-                        //           <CircularProgress size={20} />
-                        //         ) : (
-                        //           <IconButton aria-label="search" edge="end" onClick={() => validateShopNameWithGoogle(field.value)}>
-                        //             <Search />
-                        //           </IconButton>
-                        //         )}
-                        //       </InputAdornment>
-                        //     )
-                        //   }
-                        // }}
-                        sx={{ mb: 2 }}
-                      />
-                    )}
-                    noOptionsText={shopInput.length < 3 ? 'Keep typing your business name..' : 'No matches found'}
+              <Autocomplete
+                options={shopSuggestions}
+                value={selectedShop}
+                inputValue={shopInput}
+                loading={shopValidationLoading}
+                onInputChange={(_, newInput) => {
+                  setShopInput(newInput);
+                  setSelectedShop(null);
+                  setShopValidationSuccess(false);
+                  setFormData(prev => ({ ...prev, shopName: '' }));
+                  if (newInput && newInput.trim().length > 2) {
+                    validateShopNameWithGoogle(newInput.trim());
+                  } else {
+                    setShopSuggestions([]);
+                  }
+                }}
+                onChange={(_, newValue) => {
+                  setSelectedShop(newValue);
+                  if (newValue) {
+                    const mainText =
+                      newValue?.structured_formatting?.main_text ||
+                      newValue?.terms?.[0]?.value ||
+                      '';
+                    setFormData(prev => ({ ...prev, shopName: mainText }));
+                    setErrors(prev => ({ ...prev, shopName: '' }));
+                    setShopValidationSuccess(true);
+                  } else {
+                    setFormData(prev => ({ ...prev, shopName: '' }));
+                    setShopValidationSuccess(false);
+                  }
+                }}
+                freeSolo={false}
+                isOptionEqualToValue={(opt, val) => opt.place_id === val.place_id}
+                getOptionLabel={(opt) => {
+                  if (typeof opt === 'string') return opt;
+                  const main = opt?.structured_formatting?.main_text ?? '';
+                  const desc = opt?.description ?? '';
+                  return main ? main : desc;
+                }}
+                renderOption={(props, option) => {
+                  const main = option?.structured_formatting?.main_text ?? '';
+                  const desc = option?.description ?? '';
+                  return (
+                    <li {...props} key={option.place_id}>
+                      <Box>
+                        <Typography fontWeight={600}>{main}</Typography>
+                        <Typography variant="caption">{desc}</Typography>
+                      </Box>
+                    </li>
+                  );
+                }}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Search your shop on Google"
+                    fullWidth
+                    error={!!getError('shopName')}
+                    helperText={getError('shopName') || "Type at least 3 characters, then select your shop from the list"}
+                    sx={{ mb: 2 }}
                   />
                 )}
+                noOptionsText={shopInput.length < 3 ? 'Keep typing your business name..' : 'No matches found'}
               />
               {shopValidationSuccess && (
                 <Alert severity="success" sx={{ mt: 1 }}>
@@ -310,6 +478,14 @@ const SignupForm = () => {
                 </Alert>
               )}
             </Box>
+            {/* <Box sx={{ textAlign: 'center', mt: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                Already have an account?{' '}
+                <Link href="/login" variant="body2" sx={{ textDecoration: 'none', fontWeight: 'bold' }}>
+                  Login
+                </Link>
+              </Typography>
+            </Box> */}
           </Zoom>
         );
 
@@ -324,81 +500,69 @@ const SignupForm = () => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Controller
+                  <TextField
                     name="email"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Email"
-                        type="email"
-                        error={!!errors.email}
-                        helperText={errors.email?.message}
-                      />
-                    )}
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('email')}
+                    helperText={getError('email')}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Controller
+                  <TextField
                     name="password"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Password"
-                        type={showPassword ? 'text' : 'password'}
-                        error={!!errors.password}
-                        helperText={errors.password?.message || "Must be at least 8 characters with uppercase, lowercase, number, and special character"}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  aria-label="toggle password visibility"
-                                  onClick={() => setShowPassword(!showPassword)}
-                                  edge="end"
-                                >
-                                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            )
-                          }
-                        }}
-                      />
-                    )}
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('password')}
+                    helperText={getError('password') || "Must be at least 8 characters with uppercase, lowercase, number, and special character"}
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle password visibility"
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                            >
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                    }}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Controller
+                  <TextField
                     name="confirmPassword"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Confirm Password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        error={!!errors.confirmPassword}
-                        helperText={errors.confirmPassword?.message}
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton
-                                  aria-label="toggle confirm password visibility"
-                                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                  edge="end"
-                                >
-                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            )
-                          }
-                        }}
-                      />
-                    )}
+                    label="Confirm Password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('confirmPassword')}
+                    helperText={getError('confirmPassword')}
+                    slotProps={{
+                      input: {
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              aria-label="toggle confirm password visibility"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              edge="end"
+                            >
+                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }
+                    }}
                   />
                 </Grid>
               </Grid>
@@ -417,19 +581,15 @@ const SignupForm = () => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Controller
+                  <TextField
                     name="phone"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Phone"
-                        type="tel"
-                        error={!!errors.phone}
-                        helperText={errors.phone?.message}
-                      />
-                    )}
+                    label="Phone"
+                    type="tel"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('phone')}
+                    helperText={getError('phone')}
                   />
                 </Grid>
               </Grid>
@@ -441,34 +601,26 @@ const SignupForm = () => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12} md={6}>
-                  <Controller
+                  <TextField
                     name="primaryContactName"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Primary Contact Name"
-                        error={!!errors.primaryContactName}
-                        helperText={errors.primaryContactName?.message}
-                      />
-                    )}
+                    label="Primary Contact Name"
+                    value={formData.primaryContactName}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('primaryContactName')}
+                    helperText={getError('primaryContactName')}
                   />
                 </Grid>
                 <Grid item xs={12} md={6}>
-                  <Controller
+                  <TextField
                     name="primaryContactEmail"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Primary Contact Email (if different)"
-                        type="email"
-                        error={!!errors.primaryContactEmail}
-                        helperText={errors.primaryContactEmail?.message || "Optional"}
-                      />
-                    )}
+                    label="Primary Contact Email (if different)"
+                    type="email"
+                    value={formData.primaryContactEmail}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('primaryContactEmail')}
+                    helperText={getError('primaryContactEmail') || "Optional"}
                   />
                 </Grid>
               </Grid>
@@ -487,78 +639,58 @@ const SignupForm = () => {
 
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Controller
+                  <TextField
                     name="billingAddress.street"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Street Address"
-                        error={!!errors.billingAddress?.street}
-                        helperText={errors.billingAddress?.street?.message}
-                      />
-                    )}
+                    label="Street Address"
+                    value={formData.billingAddress.street}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('billingAddress.street')}
+                    helperText={getError('billingAddress.street')}
                   />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Controller
+                  <TextField
                     name="billingAddress.city"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="City"
-                        error={!!errors.billingAddress?.city}
-                        helperText={errors.billingAddress?.city?.message}
-                      />
-                    )}
+                    label="City"
+                    value={formData.billingAddress.city}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('billingAddress.city')}
+                    helperText={getError('billingAddress.city')}
                   />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Controller
+                  <TextField
                     name="billingAddress.state"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="State"
-                        error={!!errors.billingAddress?.state}
-                        helperText={errors.billingAddress?.state?.message}
-                      />
-                    )}
+                    label="State"
+                    value={formData.billingAddress.state}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('billingAddress.state')}
+                    helperText={getError('billingAddress.state')}
                   />
                 </Grid>
                 <Grid item xs={12} md={4}>
-                  <Controller
+                  <TextField
                     name="billingAddress.zipCode"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Zip Code"
-                        error={!!errors.billingAddress?.zipCode}
-                        helperText={errors.billingAddress?.zipCode?.message}
-                      />
-                    )}
+                    label="Zip Code"
+                    value={formData.billingAddress.zipCode}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('billingAddress.zipCode')}
+                    helperText={getError('billingAddress.zipCode')}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <Controller
+                  <TextField
                     name="billingAddress.country"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Country"
-                        error={!!errors.billingAddress?.country}
-                        helperText={errors.billingAddress?.country?.message}
-                      />
-                    )}
+                    label="Country"
+                    value={formData.billingAddress.country}
+                    onChange={handleInputChange}
+                    fullWidth
+                    error={!!getError('billingAddress.country')}
+                    helperText={getError('billingAddress.country')}
                   />
                 </Grid>
               </Grid>
@@ -567,21 +699,17 @@ const SignupForm = () => {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      defaultChecked
-                      onChange={(e) => {
-                        setValue('useSameAddress', e.target.checked);
-                        if (e.target.checked) {
-                          setValue('shippingAddress', watch('billingAddress'));
-                        }
-                      }}
+                      name="useSameAddress"
+                      checked={formData.useSameAddress}
+                      onChange={handleInputChange}
                     />
                   }
                   label="Use same address for shipping"
                 />
               </Box>
 
-              {!useSameAddress && (
-                <Fade in={!useSameAddress}>
+              {!formData.useSameAddress && (
+                <Fade in={!formData.useSameAddress}>
                   <Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 3, mb: 2 }}>
                       <LocalShipping color="primary" sx={{ mr: 1 }} />
@@ -590,78 +718,58 @@ const SignupForm = () => {
 
                     <Grid container spacing={2}>
                       <Grid item xs={12}>
-                        <Controller
+                        <TextField
                           name="shippingAddress.street"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Street Address"
-                              error={!!errors.shippingAddress?.street}
-                              helperText={errors.shippingAddress?.street?.message}
-                            />
-                          )}
+                          label="Street Address"
+                          value={formData.shippingAddress.street}
+                          onChange={handleInputChange}
+                          fullWidth
+                          error={!!getError('shippingAddress.street')}
+                          helperText={getError('shippingAddress.street')}
                         />
                       </Grid>
                       <Grid item xs={12} md={4}>
-                        <Controller
+                        <TextField
                           name="shippingAddress.city"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="City"
-                              error={!!errors.shippingAddress?.city}
-                              helperText={errors.shippingAddress?.city?.message}
-                            />
-                          )}
+                          label="City"
+                          value={formData.shippingAddress.city}
+                          onChange={handleInputChange}
+                          fullWidth
+                          error={!!getError('shippingAddress.city')}
+                          helperText={getError('shippingAddress.city')}
                         />
                       </Grid>
                       <Grid item xs={12} md={4}>
-                        <Controller
+                        <TextField
                           name="shippingAddress.state"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="State"
-                              error={!!errors.shippingAddress?.state}
-                              helperText={errors.shippingAddress?.state?.message}
-                            />
-                          )}
+                          label="State"
+                          value={formData.shippingAddress.state}
+                          onChange={handleInputChange}
+                          fullWidth
+                          error={!!getError('shippingAddress.state')}
+                          helperText={getError('shippingAddress.state')}
                         />
                       </Grid>
                       <Grid item xs={12} md={4}>
-                        <Controller
+                        <TextField
                           name="shippingAddress.zipCode"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Zip Code"
-                              error={!!errors.shippingAddress?.zipCode}
-                              helperText={errors.shippingAddress?.zipCode?.message}
-                            />
-                          )}
+                          label="Zip Code"
+                          value={formData.shippingAddress.zipCode}
+                          onChange={handleInputChange}
+                          fullWidth
+                          error={!!getError('shippingAddress.zipCode')}
+                          helperText={getError('shippingAddress.zipCode')}
                         />
                       </Grid>
                       <Grid item xs={12}>
-                        <Controller
+                        <TextField
                           name="shippingAddress.country"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Country"
-                              error={!!errors.shippingAddress?.country}
-                              helperText={errors.shippingAddress?.country?.message}
-                            />
-                          )}
+                          label="Country"
+                          value={formData.shippingAddress.country}
+                          onChange={handleInputChange}
+                          fullWidth
+                          error={!!getError('shippingAddress.country')}
+                          helperText={getError('shippingAddress.country')}
                         />
                       </Grid>
                     </Grid>
@@ -685,14 +793,14 @@ const SignupForm = () => {
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Shop Information
                 </Typography>
-                <Typography>{watch('shopName')}</Typography>
+                <Typography>{formData.shopName}</Typography>
 
                 <Divider sx={{ my: 2 }} />
 
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Account Details
                 </Typography>
-                <Typography>Email: {watch('email')}</Typography>
+                <Typography>Email: {formData.email}</Typography>
                 <Typography>Password: {"•".repeat(8)}</Typography>
 
                 <Divider sx={{ my: 2 }} />
@@ -700,10 +808,10 @@ const SignupForm = () => {
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Contact Information
                 </Typography>
-                <Typography>Phone: {watch('phone')}</Typography>
-                <Typography>Contact: {watch('primaryContactName')}</Typography>
-                {watch('primaryContactEmail') && (
-                  <Typography>Contact Email: {watch('primaryContactEmail')}</Typography>
+                <Typography>Phone: {formData.phone}</Typography>
+                <Typography>Contact: {formData.primaryContactName}</Typography>
+                {formData.primaryContactEmail && (
+                  <Typography>Contact Email: {formData.primaryContactEmail}</Typography>
                 )}
 
                 <Divider sx={{ my: 2 }} />
@@ -711,56 +819,51 @@ const SignupForm = () => {
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Billing Address
                 </Typography>
-                <Typography>{watch('billingAddress.street')}</Typography>
+                <Typography>{formData.billingAddress.street}</Typography>
                 <Typography>
-                  {watch('billingAddress.city')}, {watch('billingAddress.state')} {watch('billingAddress.zipCode')}
+                  {formData.billingAddress.city}, {formData.billingAddress.state} {formData.billingAddress.zipCode}
                 </Typography>
-                <Typography>{watch('billingAddress.country')}</Typography>
+                <Typography>{formData.billingAddress.country}</Typography>
 
                 <Divider sx={{ my: 2 }} />
 
                 <Typography variant="subtitle2" color="primary" gutterBottom>
                   Shipping Address
                 </Typography>
-                {useSameAddress ? (
+                {formData.useSameAddress ? (
                   <Typography>Same as billing address</Typography>
                 ) : (
                   <>
-                    <Typography>{watch('shippingAddress.street')}</Typography>
+                    <Typography>{formData.shippingAddress.street}</Typography>
                     <Typography>
-                      {watch('shippingAddress.city')}, {watch('shippingAddress.state')} {watch('shippingAddress.zipCode')}
+                      {formData.shippingAddress.city}, {formData.shippingAddress.state} {formData.shippingAddress.zipCode}
                     </Typography>
-                    <Typography>{watch('shippingAddress.country')}</Typography>
+                    <Typography>{formData.shippingAddress.country}</Typography>
                   </>
                 )}
               </Paper>
 
               <Box sx={{ mt: 3 }}>
-                <Controller
-                  name="termsAccepted"
-                  control={control}
-                  render={({ field }) => (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          {...field}
-                          checked={field.value}
-                        />
-                      }
-                      label={
-                        <Typography variant="body2">
-                          I accept the{' '}
-                          <Button variant="text" size="small" sx={{ textTransform: 'none' }}>
-                            Terms and Conditions
-                          </Button>
-                        </Typography>
-                      }
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name="termsAccepted"
+                      checked={formData.termsAccepted}
+                      onChange={handleInputChange}
                     />
-                  )}
+                  }
+                  label={
+                    <Typography variant="body2">
+                      I accept the{' '}
+                      <Button variant="text" size="small" sx={{ textTransform: 'none' }}>
+                        Terms and Conditions
+                      </Button>
+                    </Typography>
+                  }
                 />
-                {errors.termsAccepted && (
+                {getError('termsAccepted') && (
                   <Typography color="error" variant="caption">
-                    {errors.termsAccepted.message}
+                    {getError('termsAccepted')}
                   </Typography>
                 )}
               </Box>
@@ -792,7 +895,7 @@ const SignupForm = () => {
           ))}
         </Stepper>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={onSubmit}>
           {renderStepContent(activeStep)}
 
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 3 }}>
