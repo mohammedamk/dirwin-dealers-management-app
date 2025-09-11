@@ -2,11 +2,11 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { useEffect, useState } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import LoginForm from "./components/auth/LoginForm";
-import SignupForm from "./components/auth/SignupForm";
-import Dashboard from "./components/layout/dashboard/Dashboard";
-import authUtils from "./utils/authUtils";
+import { authUtils } from "./utils/authUtils";
 import LoadingScreen from "./components/global/LoadingScreen";
+import SignupForm from "./auth/SignupForm";
+import LoginForm from "./auth/LoginForm";
+import DrawerAndBar from "./components/layout/DrawerAndBar";
 
 const theme = createTheme({
   palette: {
@@ -56,7 +56,7 @@ function App() {
               path="/login"
               element={
                 isLoggedIn ?
-                  <Navigate to="/dashboard" replace /> :
+                  <Navigate to="/" replace /> :
                   <LoginForm onLogin={handleLogin} />
               }
             />
@@ -64,23 +64,15 @@ function App() {
               path="/signup"
               element={
                 isLoggedIn ?
-                  <Navigate to="/dashboard" replace /> :
+                  <Navigate to="/" replace /> :
                   <SignupForm onSignup={handleLogin} />
               }
             />
             <Route
-              path="/dashboard/*"
+              path="/*"
               element={
                 isLoggedIn ?
-                  <Dashboard onLogout={handleLogout} /> :
-                  <Navigate to="/login" replace />
-              }
-            />
-            <Route
-              path="/"
-              element={
-                isLoggedIn ?
-                  <Navigate to="/dashboard" replace /> :
+                  <DrawerAndBar onLogout={handleLogout} /> :
                   <Navigate to="/login" replace />
               }
             />

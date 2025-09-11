@@ -12,7 +12,34 @@ body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
     min-height: 100vh;
+    min-width: 100vw;
+}
+
+.auth-parent {
     display: flex;
     justify-content: center;
     align-items: center;
+    min-height: 100vh;
+}
+
+
+.toast-success {
+    background-color: #4caf50;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 3px;
+}
+
+.toast-warning {
+    background-color: #ff9800;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 3px;
+}
+
+.toast-error {
+    background-color: #f44336;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 3px;
 }

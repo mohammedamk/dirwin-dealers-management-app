@@ -20,8 +20,9 @@ import {
   Email,
   Lock
 } from '@mui/icons-material';
-import authUtils from '../../utils/authUtils';
+import { authUtils } from '../utils/authUtils';
 import { useNavigate } from 'react-router';
+import { toastSuccess } from '../components/global/NotificationToast';
 
 const LoginForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -100,7 +101,7 @@ const LoginForm = ({ onLogin }) => {
       setIsLoading(true);
       setLoginError('');
       try {
-        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/dealer/login`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/dealer/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -118,6 +119,7 @@ const LoginForm = ({ onLogin }) => {
 
         const data = await response.json();
         console.log('Login successful, token:', data.token);
+        toastSuccess('Login successful!');
         if (formData.rememberMe) {
           localStorage.setItem("myapp-email", formData.email); localStorage.setItem("myapp-password", password)
         }
@@ -147,7 +149,7 @@ const LoginForm = ({ onLogin }) => {
   };
 
   return (
-    <Container component="main" maxWidth="sm" sx={{ py: 4 }}>
+    <Container className='auth-parent' component="main" sx={{ py: 4 }}>
       <Paper elevation={3} sx={{ p: { xs: 3, md: 4 }, borderRadius: 2 }}>
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Typography component="h1" variant="h4" fontWeight="bold" color="primary" gutterBottom>
