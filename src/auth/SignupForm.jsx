@@ -30,10 +30,12 @@ const SignupForm = ({ onSignup }) => {
     shopName: '',
     email: '',
     phone: '',
-    primaryContactName: '',
+    firstName: '',
+    lastName: '',
     primaryContactEmail: '',
     password: '',
     confirmPassword: '',
+    preferredPaymentMethod: 'credit_card',
     billingAddress: {
       street: '',
       city: '',

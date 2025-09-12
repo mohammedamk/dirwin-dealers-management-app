@@ -43,13 +43,24 @@ export default function ContactDetailsStep({
                 <Grid container spacing={2}>
                     <Grid item xs={12} md={6}>
                         <TextField
-                            name="primaryContactName"
-                            label="Primary Contact Name"
-                            value={formData.primaryContactName}
+                            name="firstName"
+                            label="First Name"
+                            value={formData.firstName}
                             onChange={handleInputChange}
                             fullWidth
-                            error={!!getError('primaryContactName')}
-                            helperText={getError('primaryContactName')}
+                            error={!!getError('firstName')}
+                            helperText={getError('firstName')}
+                        />
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                        <TextField
+                            name="lastName"
+                            label="Last Name"
+                            value={formData.lastName}
+                            onChange={handleInputChange}
+                            fullWidth
+                            error={!!getError('lastName')}
+                            helperText={getError('lastName')}
                         />
                     </Grid>
                     <Grid item xs={12} md={6}>

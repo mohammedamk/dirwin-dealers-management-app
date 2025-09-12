@@ -42,7 +42,7 @@ export default function ReviewDetailsStep({
                         Contact Information
                     </Typography>
                     <Typography>Phone: {formData.phone}</Typography>
-                    <Typography>Contact: {formData.primaryContactName}</Typography>
+                    <Typography>Contact Name: {formData.firstName} {formData.lastName}</Typography>
                     {formData.primaryContactEmail && (
                         <Typography>Contact Email: {formData.primaryContactEmail}</Typography>
                     )}

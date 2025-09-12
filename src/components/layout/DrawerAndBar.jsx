@@ -197,7 +197,7 @@ export default function DrawerAndBar({ onLogout }) {
                                 aria-haspopup="true"
                                 aria-expanded={open ? 'true' : undefined}
                             >
-                                <Avatar sx={{ width: 32, height: 32 }}>{userData?.primaryContactName?.slice(0, 1)}</Avatar>
+                                <Avatar sx={{ width: 32, height: 32 }}>{userData?.firstName?.slice(0, 1)}</Avatar>
                             </IconButton>
                         </Tooltip>
                         <Menu
@@ -238,7 +238,7 @@ export default function DrawerAndBar({ onLogout }) {
                             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                         >
                             <MenuItem onClick={handleClose}>
-                                <Avatar /> {userData?.primaryContactName}
+                                <Avatar /> {userData?.firstName ?? ''} {userData?.lastName ?? ''}
                             </MenuItem>
                             <MenuItem onClick={() => {
                                 onLogout();

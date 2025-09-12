@@ -7,7 +7,11 @@ import {
     Grid,
     FormControlLabel,
     Checkbox,
-    Fade
+    Fade,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material'
 
 export default function BillingDetailsStep({
@@ -78,6 +82,29 @@ export default function BillingDetailsStep({
                             error={!!getError('billingAddress.country')}
                             helperText={getError('billingAddress.country')}
                         />
+                    </Grid>
+                    
+                    <Grid item xs={12}>
+                        <FormControl fullWidth error={!!getError('preferredPaymentMethod')}>
+                            <InputLabel>Preferred Payment Method</InputLabel>
+                            <Select
+                                name="preferredPaymentMethod"
+                                value={formData.preferredPaymentMethod}
+                                onChange={handleInputChange}
+                                label="Preferred Payment Method"
+                            >
+                                <MenuItem value="zelle">Zelle</MenuItem>
+                                <MenuItem value="paypal">Paypal</MenuItem>
+                                <MenuItem value="credit_card">
+                                    Credit Card (Online Invoice)
+                                </MenuItem>
+                            </Select>
+                            {getError('preferredPaymentMethod') && (
+                                <Typography variant="caption" color="error">
+                                    {getError('preferredPaymentMethod')}
+                                </Typography>
+                            )}
+                        </FormControl>
                     </Grid>
                 </Grid>
 

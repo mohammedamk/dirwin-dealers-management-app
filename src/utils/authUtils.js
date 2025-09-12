@@ -63,8 +63,11 @@ export const validateField = (name, value, formData) => {
             if (!value.trim()) error = 'Phone number is required';
             else if (value.length < 10) error = 'Phone number must be at least 10 digits';
             break;
-        case 'primaryContactName':
-            if (!value.trim()) error = 'Primary contact name is required';
+        case 'firstName':
+            if (!value.trim()) error = 'First name is required';
+            break;
+        case 'lastName':
+            if (!value.trim()) error = 'Last name is required';
             break;
         case 'primaryContactEmail':
             if (value && !validateEmail(value)) error = 'Invalid email address';
@@ -93,6 +96,9 @@ export const validateField = (name, value, formData) => {
         case 'billingAddress.zipCode':
             if (!value.trim()) error = 'Zip code is required';
             else if (value.length < 5) error = 'Zip code must be at least 5 digits';
+            break;
+        case 'preferredPaymentMethod':
+            if (!value.trim()) error = 'Preferred payment method is required';
             break;
         case 'billingAddress.country':
             if (!value.trim()) error = 'Country is required';
@@ -149,8 +155,11 @@ export const validateStep = ({
             const phoneError = validateField('phone', formData.phone);
             if (phoneError) newErrors.phone = phoneError;
 
-            const primaryContactNameError = validateField('primaryContactName', formData.primaryContactName);
-            if (primaryContactNameError) newErrors.primaryContactName = primaryContactNameError;
+            const firstNameError = validateField('firstName', formData.firstName);
+            if (firstNameError) newErrors.firstName = firstNameError;
+
+            const lastNameError = validateField('lastName', formData.lastName);
+            if (lastNameError) newErrors.lastName = lastNameError;
 
             const primaryContactEmailError = validateField('primaryContactEmail', formData.primaryContactEmail);
             if (primaryContactEmailError) newErrors.primaryContactEmail = primaryContactEmailError;
@@ -167,6 +176,9 @@ export const validateStep = ({
 
             const billingZipError = validateField('billingAddress.zipCode', formData.billingAddress.zipCode);
             if (billingZipError) newErrors['billingAddress.zipCode'] = billingZipError;
+
+            const preferredPaymentMethodError = validateField('preferredPaymentMethod', formData.preferredPaymentMethod);
+            if (preferredPaymentMethodError) newErrors.preferredPaymentMethod = preferredPaymentMethodError;
 
             const billingCountryError = validateField('billingAddress.country', formData.billingAddress.country);
             if (billingCountryError) newErrors['billingAddress.country'] = billingCountryError;
