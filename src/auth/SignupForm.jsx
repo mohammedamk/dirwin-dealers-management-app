@@ -69,7 +69,7 @@ const SignupForm = ({ onSignup }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    console.log("name, value, type, checked ", name, value, type, checked);
+    // console.log("name, value, type, checked ", name, value, type, checked);
     if (type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
@@ -77,8 +77,7 @@ const SignupForm = ({ onSignup }) => {
       }));
 
       if (name === 'useSameAddress' && checked) {
-        console.log("clicked useSameAddress");
-
+        // console.log("clicked useSameAddress");
         setFormData(prev => ({
           ...prev,
           shippingAddress: { ...prev.billingAddress }
@@ -131,7 +130,7 @@ const SignupForm = ({ onSignup }) => {
 
         if (response.status === 200) {
           const data = await response.json();
-          console.log("data............", data.predictions);
+          // console.log("data............", data.predictions);
           setShopSuggestions(Array.isArray(data?.predictions) ? data.predictions : []);
         }
       }
@@ -184,7 +183,7 @@ const SignupForm = ({ onSignup }) => {
 
         if (response.status === 200) {
           const data = await response.json();
-          console.log('Signup successful, token:', data.token);
+          // console.log('Signup successful, token:', data.token);
           // if (onSignup) {
           //   onSignup();
           // }

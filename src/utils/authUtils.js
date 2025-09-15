@@ -2,7 +2,6 @@ export const authUtils = {
     setToken: (token) => {
         localStorage.setItem('dirwin-dealer-token', token);
         localStorage.setItem('dirwin-dealer-token-tokenTimestamp', Date.now().toString());
-        // updateTokenDisplay();
     },
 
     getToken: () => {
@@ -12,7 +11,7 @@ export const authUtils = {
     removeToken: () => {
         localStorage.removeItem('dirwin-dealer-token');
         localStorage.removeItem('dirwin-dealer-token-tokenTimestamp');
-        // updateTokenDisplay();
+        window.location.reload()
     },
 
     isValid: () => {

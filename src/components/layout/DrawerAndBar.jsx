@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState } from 'react';
 import { styled, useTheme, } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -27,8 +27,8 @@ import { Route, Routes, useNavigate } from 'react-router';
 import Dashboard from '../../pages/Dashboard';
 import Settings from '../../pages/Settings';
 import Orders from '../../pages/Orders';
-import { authUtils } from '../../utils/authUtils';
 import { Avatar, Menu, MenuItem, Tooltip } from '@mui/material';
+import { useUser } from '../../context/UserContext';
 
 const drawerWidth = 240;
 
@@ -119,11 +119,11 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function DrawerAndBar({ onLogout }) {
     const theme = useTheme();
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = useState(false);
     const navigate = useNavigate()
-    const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const isMenuOpen = Boolean(anchorEl);
-    const [userData, setUserData] = React.useState(null);
+    const { userData } = useUser();
 
     const handleClick = (event) => {
         setAnchorEl(event.currentTarget);
@@ -139,31 +139,6 @@ export default function DrawerAndBar({ onLogout }) {
     const handleDrawerClose = () => {
         setOpen(false);
     };
-
-    const fetchUserData = async () => {
-        try {
-            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/dealer/profile`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authUtils.getToken()}`,
-                }
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            const { data } = await response.json();
-            console.log("User data:", data);
-            setUserData(data);
-            return { name: "John Doe" };
-        } catch (error) {
-            console.log("Error fetching user data:", error);
-        }
-    }
-
-    React.useEffect(() => {
-        fetchUserData();
-    }, []);
 
     return (
         <Box sx={{ display: 'flex' }}>

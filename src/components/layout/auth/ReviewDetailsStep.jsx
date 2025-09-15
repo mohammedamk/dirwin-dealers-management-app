@@ -1,5 +1,6 @@
 import { Assignment } from '@mui/icons-material'
-import { Zoom,
+import {
+    Zoom,
     Box,
     Typography,
     Paper,
@@ -7,7 +8,7 @@ import { Zoom,
     FormControlLabel,
     Checkbox,
     Button
- } from '@mui/material'
+} from '@mui/material'
 
 export default function ReviewDetailsStep({
     formData,
@@ -88,7 +89,12 @@ export default function ReviewDetailsStep({
                         label={
                             <Typography variant="body2">
                                 I accept the{' '}
-                                <Button variant="text" size="small" sx={{ textTransform: 'none' }}>
+                                <Button
+                                    variant="text"
+                                    size="small"
+                                    sx={{ textTransform: 'none' }}
+                                    target='_blank'
+                                    href={`${import.meta.env.VITE_SERVER_URL}/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}>
                                     Terms and Conditions
                                 </Button>
                             </Typography>

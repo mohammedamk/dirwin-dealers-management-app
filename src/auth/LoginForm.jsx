@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -22,7 +22,7 @@ import {
 } from '@mui/icons-material';
 import { authUtils } from '../utils/authUtils';
 import { useNavigate } from 'react-router';
-import { toastSuccess } from '../components/global/NotificationToast';
+import { toastError, toastSuccess } from '../components/global/NotificationToast';
 
 const LoginForm = ({ onLogin }) => {
   const [formData, setFormData] = useState({
@@ -35,6 +35,16 @@ const LoginForm = ({ onLogin }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("dirwin-site-email");
+    const savedPassword = localStorage.getItem("dirwin-site-password")
+    setFormData((pre) => ({
+      ...pre,
+      email: savedEmail,
+      password: savedPassword
+    }))
+  }, [])
 
   const validateField = (name, value) => {
     let error = '';
@@ -112,28 +122,27 @@ const LoginForm = ({ onLogin }) => {
           })
         });
 
-        if (!response.ok) {
+        if (response.status > 201) {
           const errorData = await response.json();
-          throw new Error(errorData.message || 'Login failed');
+          toastError(errorData?.message || 'Signup failed. Please try again.');
+        } else {
+          const data = await response.json();
+          authUtils.setToken(data.token);
+          // console.log('Login successful, token:', data.token);
+          toastSuccess('Login successful!');
+          if (formData.rememberMe) {
+            localStorage.setItem("dirwin-site-email", formData.email);
+            localStorage.setItem("dirwin-site-password", formData.password)
+          }
+          else {
+            localStorage.setItem("dirwin-site-email", "");
+            localStorage.setItem("dirwin-site-password", "")
+          }
+          if (onLogin) {
+            onLogin();
+          }
+          navigate('/dashboard');
         }
-
-        const data = await response.json();
-        console.log('Login successful, token:', data.token);
-        toastSuccess('Login successful!');
-        if (formData.rememberMe) {
-          localStorage.setItem("myapp-email", formData.email); localStorage.setItem("myapp-password", password)
-        }
-        else {
-          localStorage.setItem("myapp-email", ""); localStorage.setItem("myapp-password", "")
-        }
-
-        authUtils.setToken(data.token);
-
-        if (onLogin) {
-          onLogin();
-        }
-
-        navigate('/dashboard');
 
       } catch (error) {
         setLoginError(error.message || 'Login failed. Please check your credentials and try again.');

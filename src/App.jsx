@@ -7,6 +7,7 @@ import LoadingScreen from "./components/global/LoadingScreen";
 import SignupForm from "./auth/SignupForm";
 import LoginForm from "./auth/LoginForm";
 import DrawerAndBar from "./components/layout/DrawerAndBar";
+import { UserProvider } from "./context/UserContext";
 
 const theme = createTheme({
   palette: {
@@ -72,7 +73,10 @@ function App() {
               path="/*"
               element={
                 isLoggedIn ?
-                  <DrawerAndBar onLogout={handleLogout} /> :
+                  <UserProvider>
+                    <DrawerAndBar onLogout={handleLogout} />
+                  </UserProvider>
+                  :
                   <Navigate to="/login" replace />
               }
             />
