@@ -2,77 +2,46 @@ import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
+    CircularProgress,
+    TextField,
 } from '@mui/material';
 import DataTable from '../components/layout/dashboard/DataTable';
 import { useUser } from '../context/UserContext';
 import { authUtils } from '../utils/authUtils';
 
-const testOrders = [
-    {
-        id: 'ORD-001',
-        customer: 'John Doe',
-        product: 'Office Chair',
-        quantity: 5,
-        status: 'completed',
-        total: 1250.00,
-        date: '2024-01-15',
-    },
-    {
-        id: 'ORD-002',
-        customer: 'Jane Smith',
-        product: 'Desk Assembly',
-        quantity: 2,
-        status: 'pending',
-        total: 800.00,
-        date: '2024-01-16',
-    },
-    {
-        id: 'ORD-003',
-        customer: 'Bob Johnson',
-        product: 'Bookshelf',
-        quantity: 3,
-        status: 'in-progress',
-        total: 450.00,
-        date: '2024-01-14',
-    },
-    {
-        id: 'ORD-004',
-        customer: 'Alice Brown',
-        product: 'Wardrobe',
-        quantity: 1,
-        status: 'completed',
-        total: 1200.00,
-        date: '2024-01-13',
-    },
-    {
-        id: 'ORD-005',
-        customer: 'Charlie Wilson',
-        product: 'Table Set',
-        quantity: 4,
-        status: 'pending',
-        total: 1600.00,
-        date: '2024-01-17',
-    },
-];
-
-
-
 export default function Orders() {
-    const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
-    const [orders, setOrders] = useState(testOrders);
+    const [orders, setOrders] = useState([]);
     const { userData } = useUser();
+    const [pagination, setPagination] = useState({
+        hasPrevious: false,
+        hasNext: true,
+        currentPage: 1,
+        totalPages: 1,
+        itemsPerPage: 5,
+        totalItems: 0,
+    });
+
+    const [searchQuery, setSearchQuery] = useState("");
+    const [isLoading, setLoading] = useState(false);
 
     const fetchOrders = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/get_assembly_orders`, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${authUtils.getToken()}`,
-                },
-                body: JSON.stringify({ dealerId: userData._id })
-            })
+            setLoading(true);
+            const response = await fetch(
+                `${import.meta.env.VITE_SERVER_URL}/vite/get_assembly_orders`,
+                {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authUtils.getToken()}`,
+                    },
+                    body: JSON.stringify({
+                        dealerId: userData._id,
+                        pagination,
+                        searchQuery,
+                    }),
+                }
+            );
 
             if (response.status === 401) {
                 authUtils.removeToken();
@@ -80,46 +49,64 @@ export default function Orders() {
             }
 
             if (response.ok) {
-                const data = await response.json()
-                // console.log("orders data.........", data)
-                setOrders([])
+                const data = await response.json();
+                setOrders(data.orderData || []);
+                setPagination(data.pagination);
             }
         } catch (error) {
-            console.log("error occured on fetchOrders", error)
+            console.error("error occurred on fetchOrders", error);
+        } finally {
+            setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
-        fetchOrders()
-    }, [])
+        fetchOrders();
+    }, [pagination.currentPage, pagination.itemsPerPage, searchQuery]);
 
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const handleChangePage = (_, newPage) => {
+        setPagination((prev) => ({
+            ...prev,
+            currentPage: newPage + 1,
+        }));
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+        setPagination((prev) => ({
+            ...prev,
+            itemsPerPage: parseInt(event.target.value, 10),
+            currentPage: 1,
+        }));
     };
-
 
     return (
         <Box sx={{ p: 3 }}>
-            <Box sx={{ mb: 3 }}>
+            <Box sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2 }}>
                 <Typography variant="h4" gutterBottom>
                     Orders
                 </Typography>
                 <Typography variant="body1" color="textSecondary">
                     All assembly orders.
                 </Typography>
+                <TextField
+                    placeholder="Search orders..."
+                    variant="outlined"
+                    size="small"
+                    value={searchQuery}
+                    onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setPagination((prev) => ({ ...prev, currentPage: 1 }));
+                    }}
+                    sx={{ maxWidth: 300 }}
+                />
             </Box>
 
             <DataTable
                 orders={orders}
-                page={page}
-                rowsPerPage={rowsPerPage}
+                pagination={pagination}
                 handleChangePage={handleChangePage}
                 handleChangeRowsPerPage={handleChangeRowsPerPage}
+                isLoading={isLoading}
             />
         </Box>
     );
