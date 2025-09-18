@@ -22,6 +22,7 @@ import {
     Settings as SettingsIcon,
     Logout as LogoutIcon,
     Logout,
+    Person2
 } from '@mui/icons-material';
 import { Route, Routes, useNavigate } from 'react-router';
 import Dashboard from '../../pages/Dashboard';
@@ -29,6 +30,7 @@ import Settings from '../../pages/Settings';
 import Orders from '../../pages/Orders';
 import { Avatar, Menu, MenuItem, Tooltip } from '@mui/material';
 import { useUser } from '../../context/UserContext';
+import Profile from '../../pages/Profile';
 
 const drawerWidth = 240;
 
@@ -89,6 +91,7 @@ const AppBar = styled(MuiAppBar, {
 const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Orders', icon: <OrdersIcon />, path: '/orders' },
+    { text: 'Profile', icon: <Person2 />, path: '/profile' },
     // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
 ];
 
@@ -349,6 +352,7 @@ export default function DrawerAndBar({ onLogout }) {
                     <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/orders" element={<Orders />} />
+                        <Route path="/profile" element={<Profile />} />
                         {/* <Route path="/settings" element={<Settings />} /> */}
                     </Routes>
                 </Box>

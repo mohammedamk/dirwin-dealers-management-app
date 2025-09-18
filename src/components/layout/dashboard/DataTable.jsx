@@ -34,6 +34,32 @@ export default function DataTable({
   handleChangeRowsPerPage,
   isLoading
 }) {
+
+  const handleInvoiceViewAndDownload = async (type, orderId) => {
+    const baseUrl = import.meta.env.VITE_SERVER_URL;
+
+    const url = `${baseUrl}/vite/invoice/generate/${orderId}`;
+
+    if (type === "view") {
+      window.open(url, "_blank");
+    } else if (type === "download") {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `invoice_${orderId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error) {
+        console.error("Error downloading invoice:", error);
+      }
+    }
+  };
+
   return (
     <Paper sx={{ width: '100%', overflowX: 'auto' }}>
       <TableContainer sx={{ minWidth: 900 }}>
@@ -107,10 +133,10 @@ export default function DataTable({
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            <IconButton size="small" color="primary">
+                            <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
                               <ViewIcon />
                             </IconButton>
-                            <IconButton size="small" color="info">
+                            <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
                               <DownloadIcon />
                             </IconButton>
                           </Box>
@@ -150,9 +176,9 @@ const TableRowsLoader = ({ rowsNum }) => {
       <TableCell component="th" scope="row">
         <Skeleton animation="wave" variant="text" />
       </TableCell>
-      {Array.from({ length: 10 }).map(() => {
+      {Array.from({ length: 10 }).map((d, i) => {
         return (
-          <TableCell>
+          <TableCell key={i + 1}>
             <Skeleton animation="wave" variant="text" />
           </TableCell>
         )
