@@ -51,11 +51,14 @@ const Dashboard = () => {
           Dashboard Overview
         </Typography>
         <Typography variant="body1" color="textSecondary">
-          Welcome to your dashboard! Here you can find a summary of your orders and revenue.
+          Welcome to your dashboard! 
         </Typography>
+        {/* <Typography variant="body1" color="textSecondary">
+          Welcome to your dashboard! Here you can find a summary of your orders and revenue.
+        </Typography> */}
       </Box>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      {/* <Grid container spacing={3} sx={{ mb: 4 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card
@@ -123,7 +126,7 @@ const Dashboard = () => {
             </Card>
           </Grid>
         ))}
-      </Grid>
+      </Grid> */}
 
       {/* <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
