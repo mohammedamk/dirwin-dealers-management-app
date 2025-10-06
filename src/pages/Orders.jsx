@@ -4,10 +4,13 @@ import {
     Typography,
     CircularProgress,
     TextField,
+    Link,
 } from '@mui/material';
 import DataTable from '../components/layout/dashboard/DataTable';
 import { useUser } from '../context/UserContext';
 import { authUtils } from '../utils/authUtils';
+import ConfirmationModal from '../components/global/ConfirmationModal';
+import { toastError, toastSuccess } from '../components/global/NotificationToast';
 
 export default function Orders() {
     const [orders, setOrders] = useState([]);
@@ -23,6 +26,19 @@ export default function Orders() {
 
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setLoading] = useState(false);
+    const [confirmModal, setConfirmModal] = useState({
+        open: false,
+        actionType: '',
+        orderId: '',
+    });
+
+    const handleOpenConfirmModal = (actionType, orderId) => {
+        setConfirmModal({ open: true, actionType, orderId });
+    };
+
+    const handleCloseConfirmModal = () => {
+        setConfirmModal({ open: false, actionType: '', orderId: '' });
+    };
 
     const fetchOrders = async () => {
         try {
@@ -79,6 +95,31 @@ export default function Orders() {
         }));
     };
 
+    const handleAssignment = async () => {
+        const { actionType, orderId } = confirmModal;
+        try {
+            handleCloseConfirmModal();
+            const baseUrl = import.meta.env.VITE_SERVER_URL;
+            const url = `${baseUrl}/vite/order/manage`;
+
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ actionType, orderId }),
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to process order action");
+            }
+
+            fetchOrders();
+            toastSuccess(`Successfully ${actionType.toLowerCase()} order request.`);
+        } catch (error) {
+            console.log("error occured on handleAssignment", error);
+            toastError('Error occurred while processing action');
+        }
+    };
+
     return (
         <Box sx={{ p: 3 }}>
             <Box sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -106,7 +147,33 @@ export default function Orders() {
                 pagination={pagination}
                 handleChangePage={handleChangePage}
                 handleChangeRowsPerPage={handleChangeRowsPerPage}
+                handleOpenConfirmModal={handleOpenConfirmModal}
                 isLoading={isLoading}
+            />
+            <ConfirmationModal
+                title={confirmModal.actionType === "APPROVED" ? "Confirm Acceptance" : "Confirm Rejection"}
+                isOpen={confirmModal.open}
+                onClose={handleCloseConfirmModal}
+                primaryText={confirmModal.actionType === "APPROVED" ? "Accept" : "Reject"}
+                isSuccessColor={confirmModal.actionType === "APPROVED"}
+                secondaryText={"Cancel"}
+                primaryAction={handleAssignment}
+                secondaryAction={handleCloseConfirmModal}
+                content={
+                    confirmModal.actionType === "APPROVED" ? (
+                        <Typography variant="body1">
+                            By clicking <strong>‘Accept,’</strong> you confirm your agreement to assemble and fulfill this order at the stated assembly rate.
+                            This acceptance creates a binding obligation under the{' '}
+                            <Link href={`${import.meta.env.VITE_SERVER_URL}/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`} target="_blank" rel="noopener" underline="hover">
+                                Terms of Service
+                            </Link>.
+                        </Typography>
+                    ) : (
+                        <Typography variant="body1">
+                            Are you sure you want to reject this order?
+                        </Typography>
+                    )
+                }
             />
         </Box>
     );

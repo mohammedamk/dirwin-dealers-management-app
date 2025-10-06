@@ -12,11 +12,13 @@ import {
   Chip,
   IconButton,
   Skeleton,
+  Button,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
   Visibility as ViewIcon,
 } from '@mui/icons-material';
+import { toastError, toastSuccess } from '../../global/NotificationToast';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -32,6 +34,7 @@ export default function DataTable({
   pagination,
   handleChangePage,
   handleChangeRowsPerPage,
+  handleOpenConfirmModal,
   isLoading
 }) {
 
@@ -77,6 +80,7 @@ export default function DataTable({
               <TableCell align="center">Financial status</TableCell>
               <TableCell align="center">Assembly Fee</TableCell>
               <TableCell align="center">Created at</TableCell>
+              <TableCell align="center">Invoice</TableCell>
               <TableCell align="center">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -102,6 +106,7 @@ export default function DataTable({
                       assemblyFee,
                       financialStatus,
                       createdAt,
+                      assignment
                     }) => (
                       <TableRow key={orderId} hover>
                         <TableCell>#{orderNumber}</TableCell>
@@ -133,13 +138,37 @@ export default function DataTable({
                         </TableCell>
                         <TableCell align="center">
                           <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
-                              <ViewIcon />
-                            </IconButton>
-                            <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
-                              <DownloadIcon />
-                            </IconButton>
+                            {(assignment === "PENDING" || !assignment) ? "--" : <>
+                              <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
+                                <ViewIcon />
+                              </IconButton>
+                              <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
+                                <DownloadIcon />
+                              </IconButton>
+                            </>}
                           </Box>
+                        </TableCell>
+
+                        <TableCell align="center">
+                          {(assignment === "PENDING" || !assignment) ? <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            <Button
+                              variant="contained"
+                              color="success"
+                              size="small"
+                              onClick={() => handleOpenConfirmModal("APPROVED", orderId)}
+                            >
+                              Accept
+                            </Button>
+
+                            <Button
+                              variant="contained"
+                              color="error"
+                              size="small"
+                              onClick={() => handleOpenConfirmModal("REJECTED", orderId)}
+                            >
+                              Reject
+                            </Button>
+                          </Box> : "--"}
                         </TableCell>
                       </TableRow>
                     )
@@ -157,7 +186,7 @@ export default function DataTable({
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[1, 2, 5, 10, 25]}
+        rowsPerPageOptions={[ 5, 10, 25]}
         component="div"
         count={pagination.totalItems || 0}
         rowsPerPage={pagination.itemsPerPage}
