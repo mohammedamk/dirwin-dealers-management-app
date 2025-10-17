@@ -53,11 +53,29 @@ export default function ReviewDetailsStep({
                     <Typography variant="subtitle2" color="primary" gutterBottom>
                         Billing Address
                     </Typography>
-                    <Typography>{formData.billingAddress.street}</Typography>
+
                     <Typography>
-                        {formData.billingAddress.city}, {formData.billingAddress.state} {formData.billingAddress.zipCode}
+                        Street: {formData.billingAddress.street}
                     </Typography>
-                    <Typography>{formData.billingAddress.country}</Typography>
+
+                    <Typography>
+                        Address: {formData.billingAddress.city}, {formData.billingAddress.state} {formData.billingAddress.zipCode}
+                    </Typography>
+
+                    <Typography>
+                        {formData.billingAddress.country}
+                    </Typography>
+
+                    <Typography>
+                        Payment Method: {formData.preferredPaymentMethod}
+                    </Typography>
+
+                    {(formData.preferredPaymentMethod === "paypal" || formData.preferredPaymentMethod === "zelle") && (
+                        <Typography>
+                            {formData.preferredPaymentMethod === "paypal" ? "PayPal ID:" : "Zelle ID:"}{" "}
+                            {formData.paymentMethodId}
+                        </Typography>
+                    )}
 
                     <Divider sx={{ my: 2 }} />
 

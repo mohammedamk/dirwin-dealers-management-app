@@ -36,6 +36,7 @@ const SignupForm = ({ onSignup }) => {
     password: '',
     confirmPassword: '',
     preferredPaymentMethod: 'credit_card',
+    paymentMethodId: '',
     billingAddress: {
       street: '',
       city: '',
@@ -145,6 +146,7 @@ const SignupForm = ({ onSignup }) => {
   };
 
   const handleNext = async () => {
+    // console.log("formData before next:", formData);
     const isValid = validateStep({
       step: activeStep,
       formData,

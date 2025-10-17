@@ -106,6 +106,18 @@ export default function BillingDetailsStep({
                             )}
                         </FormControl>
                     </Grid>
+                    {(formData.preferredPaymentMethod === "zelle" || formData.preferredPaymentMethod === "paypal") &&
+                        <Grid item xs={12}>
+                            <TextField
+                                name="paymentMethodId"
+                                label={formData.preferredPaymentMethod === "paypal" ? "PayPal ID" : "Zelle ID"}
+                                value={formData.paymentMethodId}
+                                onChange={handleInputChange}
+                                fullWidth
+                                error={!!getError('paymentMethodId')}
+                                helperText={getError('paymentMethodId')}
+                            />
+                        </Grid>}
                 </Grid>
 
                 <Box sx={{ mt: 3 }}>

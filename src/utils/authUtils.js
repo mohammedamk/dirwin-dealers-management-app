@@ -99,6 +99,9 @@ export const validateField = (name, value, formData) => {
         case 'preferredPaymentMethod':
             if (!value.trim()) error = 'Preferred payment method is required';
             break;
+        case 'paymentMethodId':
+            if (!value.trim()) error = `${formData.preferredPaymentMethod === "paypal" ? "PayPal" : "Zelle"} ID is required`;
+            break;
         case 'billingAddress.country':
             if (!value.trim()) error = 'Country is required';
             break;
@@ -181,6 +184,11 @@ export const validateStep = ({
 
             const billingCountryError = validateField('billingAddress.country', formData.billingAddress.country);
             if (billingCountryError) newErrors['billingAddress.country'] = billingCountryError;
+
+            if (formData.preferredPaymentMethod === "paypal" || formData.preferredPaymentMethod === "zelle") {
+                const paymentMethodIdError = validateField('paymentMethodId', formData.paymentMethodId, formData);
+                if (paymentMethodIdError) newErrors['paymentMethodId'] = paymentMethodIdError;
+            }
 
             if (!formData.useSameAddress) {
                 const shippingStreetError = validateField('shippingAddress.street', formData.shippingAddress.street, formData);
