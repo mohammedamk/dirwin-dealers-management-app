@@ -70,18 +70,25 @@ const SignupForm = ({ onSignup }) => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    // console.log("name, value, type, checked ", name, value, type, checked);
+    // console.log(`name: "${name}" | value: "${value}" | type: "${type}" | checked: ${checked}`);
     if (type === 'checkbox') {
       setFormData(prev => ({
         ...prev,
         [name]: checked
       }));
 
-      if (name === 'useSameAddress' && checked) {
-        // console.log("clicked useSameAddress");
+      if (name === 'useSameAddress') {
         setFormData(prev => ({
           ...prev,
-          shippingAddress: { ...prev.billingAddress }
+          shippingAddress: {
+            ...(checked ? { ...prev.billingAddress } : {
+              street: '',
+              city: '',
+              state: '',
+              zipCode: '',
+              country: ''
+            })
+          }
         }));
       }
     } else if (name.includes('.')) {
@@ -174,7 +181,7 @@ const SignupForm = ({ onSignup }) => {
       if (isValid && activeStep === steps.length - 1) {
         setIsSubmitting(true);
         // setSignupError('');
-
+        // console.log('Submitting signup form with data:', formData);
         const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/dealer/signup`, {
           method: 'POST',
           headers: {

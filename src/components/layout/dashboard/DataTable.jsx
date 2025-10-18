@@ -9,7 +9,6 @@ import {
   TableHead,
   TableRow,
   TablePagination,
-  Chip,
   IconButton,
   Skeleton,
   Button,
@@ -70,14 +69,13 @@ export default function DataTable({
           <TableHead>
             <TableRow>
               <TableCell>Order Number</TableCell>
+              <TableCell>Products</TableCell>
               <TableCell align="center">First name</TableCell>
               <TableCell align="center">Last name</TableCell>
               <TableCell align="center">Email</TableCell>
               <TableCell align="center">Phone</TableCell>
               <TableCell align="center">State</TableCell>
               <TableCell align="center">City</TableCell>
-              <TableCell align="center">Total</TableCell>
-              <TableCell align="center">Financial status</TableCell>
               <TableCell align="center">Assembly Fee</TableCell>
               <TableCell align="center">Created at</TableCell>
               <TableCell align="center">Invoice</TableCell>
@@ -94,84 +92,75 @@ export default function DataTable({
                     ({
                       orderId,
                       orderNumber,
+                      lineItems,
                       firstName,
                       lastName,
                       email,
                       phone,
                       state,
                       city,
-                      totalPrice,
-                      currency,
-                      fulfillmentStatus,
                       assemblyFee,
-                      financialStatus,
                       createdAt,
                       assignment
-                    }) => (
-                      <TableRow key={orderId} hover>
-                        <TableCell>#{orderNumber}</TableCell>
-                        <TableCell align="center">{firstName || "N/A"}</TableCell>
-                        <TableCell align="center">{lastName || "N/A"}</TableCell>
-                        <TableCell align="center">{email || "N/A"}</TableCell>
-                        <TableCell align="center">{phone || "N/A"}</TableCell>
-                        <TableCell align="center">{state || "N/A"}</TableCell>
-                        <TableCell align="center">{city || "N/A"}</TableCell>
-                        <TableCell align="center">
-                          {totalPrice
-                            ? `${Number(totalPrice).toFixed(2)} ${currency}`
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Chip
-                            label={financialStatus}
-                            color={getStatusColor(financialStatus)}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell align="center">
-                          {assemblyFee
-                            ? `${Number(assemblyFee).toFixed(2)}`
-                            : "N/A"}
-                        </TableCell>
-                        <TableCell align="right">
-                          {new Date(createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell align="center">
-                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            {(assignment === "PENDING" || !assignment) ? "--" : <>
-                              <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
-                                <ViewIcon />
-                              </IconButton>
-                              <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
-                                <DownloadIcon />
-                              </IconButton>
-                            </>}
-                          </Box>
-                        </TableCell>
+                    }) => {
+                      const products = lineItems.map(item => item.title).join(', ');
+                      return (
+                        <TableRow key={orderId} hover>
+                          <TableCell>#{orderNumber}</TableCell>
+                          <TableCell component="th" scope="row" align="center">
+                            {products || "N/A"}
+                          </TableCell>
+                          <TableCell align="center">{firstName || "N/A"}</TableCell>
+                          <TableCell align="center">{lastName || "N/A"}</TableCell>
+                          <TableCell align="center">{email || "N/A"}</TableCell>
+                          <TableCell align="center">{phone || "N/A"}</TableCell>
+                          <TableCell align="center">{state || "N/A"}</TableCell>
+                          <TableCell align="center">{city || "N/A"}</TableCell>
+                          <TableCell align="center">
+                            {assemblyFee
+                              ? `${Number(assemblyFee).toFixed(2)}`
+                              : "N/A"}
+                          </TableCell>
+                          <TableCell align="right">
+                            {new Date(createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell align="center">
+                            <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                              {(assignment === "PENDING" || !assignment) ? "--" : <>
+                                <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
+                                  <ViewIcon />
+                                </IconButton>
+                                <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
+                                  <DownloadIcon />
+                                </IconButton>
+                              </>}
+                            </Box>
+                          </TableCell>
 
-                        <TableCell align="center">
-                          {(assignment === "PENDING" || !assignment) ? <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
-                            <Button
-                              variant="contained"
-                              color="success"
-                              size="small"
-                              onClick={() => handleOpenConfirmModal("APPROVED", orderId)}
-                            >
-                              Accept
-                            </Button>
+                          <TableCell align="center">
+                            {(assignment === "PENDING" || !assignment) ? <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                              <Button
+                                variant="contained"
+                                color="success"
+                                size="small"
+                                onClick={() => handleOpenConfirmModal("APPROVED", orderId)}
+                              >
+                                Accept
+                              </Button>
 
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="small"
-                              onClick={() => handleOpenConfirmModal("REJECTED", orderId)}
-                            >
-                              Reject
-                            </Button>
-                          </Box> : "--"}
-                        </TableCell>
-                      </TableRow>
-                    )
+                              <Button
+                                variant="contained"
+                                color="error"
+                                size="small"
+                                onClick={() => handleOpenConfirmModal("REJECTED", orderId)}
+                              >
+                                Reject
+                              </Button>
+                            </Box> : "--"}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    }
                   )
                 ) : (
                   <TableRow>
@@ -186,7 +175,7 @@ export default function DataTable({
       </TableContainer>
 
       <TablePagination
-        rowsPerPageOptions={[ 5, 10, 25]}
+        rowsPerPageOptions={[5, 10, 25]}
         component="div"
         count={pagination.totalItems || 0}
         rowsPerPage={pagination.itemsPerPage}

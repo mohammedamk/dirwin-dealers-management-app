@@ -60,7 +60,7 @@ export const validateField = (name, value, formData) => {
             break;
         case 'phone':
             if (!value.trim()) error = 'Phone number is required';
-            else if (value.length < 10) error = 'Phone number must be at least 10 digits';
+            else if (value.length < 3) error = 'Phone number must be at least 3 digits';
             break;
         case 'firstName':
             if (!value.trim()) error = 'First name is required';
