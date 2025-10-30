@@ -17,7 +17,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import {
     Menu as MenuIcon,
-    Dashboard as DashboardIcon,
+    // Dashboard as DashboardIcon,
     Inventory as OrdersIcon,
     Settings as SettingsIcon,
     Logout as LogoutIcon,
@@ -25,7 +25,7 @@ import {
     Person2
 } from '@mui/icons-material';
 import { Route, Routes, useNavigate } from 'react-router';
-import Dashboard from '../../pages/Dashboard';
+// import Dashboard from '../../pages/Dashboard';
 import Settings from '../../pages/Settings';
 import Orders from '../../pages/Orders';
 import { Avatar, Menu, MenuItem, Tooltip } from '@mui/material';
@@ -89,7 +89,7 @@ const AppBar = styled(MuiAppBar, {
     }));
 
 const menuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    // { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Orders', icon: <OrdersIcon />, path: '/orders' },
     { text: 'Profile', icon: <Person2 />, path: '/profile' },
     // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
@@ -146,7 +146,7 @@ export default function DrawerAndBar({ onLogout }) {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar position="fixed" open={open} sx={{ backgroundColor: '#1976d2', }}>
+            <AppBar position="fixed" open={open} sx={{ backgroundColor: '#EB613A', }}>
                 <Toolbar>
                     <IconButton
                         color="inherit"
@@ -163,9 +163,20 @@ export default function DrawerAndBar({ onLogout }) {
                         <MenuIcon />
                     </IconButton>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                        <Typography variant="h6" noWrap component="div">
-                            Dealer Dashboard
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <img 
+                                src="/images/dirwin_full_logo.png" 
+                                alt="Dirwin Logo" 
+                                style={{ 
+                                    height: '40px', 
+                                    marginRight: '16px',
+                                    filter: 'brightness(0) invert(1)'
+                                }} 
+                            />
+                            <Typography variant="h6" noWrap component="div">
+                                Dealer Assembly
+                            </Typography>
+                        </Box>
                         <Tooltip title="Account settings">
                             <IconButton
                                 onClick={handleClick}
@@ -350,7 +361,7 @@ export default function DrawerAndBar({ onLogout }) {
                 >
                     <DrawerHeader />
                     <Routes>
-                        <Route path="/" element={<Dashboard />} />
+                        {/* <Route path="/" element={<Dashboard />} /> */}
                         <Route path="/orders" element={<Orders />} />
                         <Route path="/profile" element={<Profile />} />
                         {/* <Route path="/settings" element={<Settings />} /> */}

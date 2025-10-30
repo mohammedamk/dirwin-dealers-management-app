@@ -13,10 +13,19 @@ const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#1976d2',
+      main: '#EB613A',
     },
     secondary: {
       main: '#dc004e',
+    },
+    typography: {
+      fontFamily: "'Roboto', sans-serif",
+      h1: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
+      h2: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
+      h3: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
+      h4: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
+      h5: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
+      h6: { fontFamily: "'Raleway', sans-serif", fontWeight: 900 },
     },
   },
 });
@@ -57,7 +66,7 @@ function App() {
               path="/login"
               element={
                 isLoggedIn ?
-                  <Navigate to="/" replace /> :
+                  <Navigate to="/orders" replace /> :
                   <LoginForm onLogin={handleLogin} />
               }
             />
@@ -65,7 +74,7 @@ function App() {
               path="/signup"
               element={
                 isLoggedIn ?
-                  <Navigate to="/" replace /> :
+                  <Navigate to="/orders" replace /> :
                   <SignupForm onSignup={handleLogin} />
               }
             />

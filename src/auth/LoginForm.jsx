@@ -141,7 +141,7 @@ const LoginForm = ({ onLogin }) => {
           if (onLogin) {
             onLogin();
           }
-          navigate('/dashboard');
+          navigate('/orders');
         }
 
       } catch (error) {

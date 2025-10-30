@@ -130,7 +130,7 @@ export default function DataTable({
                                 <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("view", orderId) }}>
                                   <ViewIcon />
                                 </IconButton>
-                                <IconButton size="small" color="info" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
+                                <IconButton size="small" color="primary" onClick={() => { handleInvoiceViewAndDownload("download", orderId) }}>
                                   <DownloadIcon />
                                 </IconButton>
                               </>}

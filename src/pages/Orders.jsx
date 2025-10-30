@@ -164,9 +164,14 @@ export default function Orders() {
                         <Typography variant="body1">
                             By clicking <strong>‘Accept,’</strong> you confirm your agreement to assemble and fulfill this order at the stated assembly rate.
                             This acceptance creates a binding obligation under the{' '}
-                            <Link href={`${import.meta.env.VITE_SERVER_URL}/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`} target="_blank" rel="noopener" underline="hover">
+                            <Link
+                                href={`${import.meta.env.VITE_SERVER_URL}/uploads/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}
+                                target="_blank"
+                                rel="noopener"
+                                underline="hover"
+                            >
                                 Terms of Service
-                            </Link>.
+                            </Link>
                         </Typography>
                     ) : (
                         <Typography variant="body1">
