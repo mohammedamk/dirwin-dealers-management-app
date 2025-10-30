@@ -112,7 +112,7 @@ export default function ReviewDetailsStep({
                                     size="small"
                                     sx={{ textTransform: 'none' }}
                                     target='_blank'
-                                    href={`${import.meta.env.VITE_SERVER_URL}/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}>
+                                    href={`${import.meta.env.VITE_SERVER_URL}/uploads/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}>
                                     Terms and Conditions
                                 </Button>
                             </Typography>
