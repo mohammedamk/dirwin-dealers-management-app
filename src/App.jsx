@@ -6,6 +6,7 @@ import { authUtils } from "./utils/authUtils";
 import LoadingScreen from "./components/global/LoadingScreen";
 import SignupForm from "./auth/SignupForm";
 import LoginForm from "./auth/LoginForm";
+import ForgotPassword from "./auth/ForgotPassword";
 import DrawerAndBar from "./components/layout/DrawerAndBar";
 import { UserProvider } from "./context/UserContext";
 
@@ -76,6 +77,14 @@ function App() {
                 isLoggedIn ?
                   <Navigate to="/orders" replace /> :
                   <SignupForm onSignup={handleLogin} />
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                isLoggedIn ?
+                  <Navigate to="/orders" replace /> :
+                  <ForgotPassword />
               }
             />
             <Route

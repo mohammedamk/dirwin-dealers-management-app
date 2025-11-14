@@ -22,6 +22,7 @@ import {
     Select,
     MenuItem,
     IconButton,
+    InputAdornment,
 } from "@mui/material";
 import {
     Business,
@@ -33,6 +34,9 @@ import {
     LocationOn,
     LocalShipping,
     Edit,
+    Lock,
+    Visibility,
+    VisibilityOff,
 } from "@mui/icons-material";
 import LoadingScreen from "../components/global/LoadingScreen";
 import { styled } from "@mui/material/styles";
@@ -96,6 +100,15 @@ export default function Profile() {
     const [editFormData, setEditFormData] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPwd, setShowPwd] = useState(false);
+    const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+    const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+
     if (!userData) {
         return <LoadingScreen />;
     }
@@ -136,6 +149,12 @@ export default function Profile() {
         setEditDialogOpen(false);
         setEditingSection(null);
         setEditFormData({});
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setShowPwd(false);
+        setShowConfirmPwd(false);
+        setPasswordDialogOpen(false);
     };
 
     const handleInputChange = (e) => {
@@ -186,7 +205,6 @@ export default function Profile() {
                 ...editFormData,
             };
 
-            // console.log('Update Data:', updateData);
             const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/update/dealer`, {
                 method: 'POST',
                 headers: {
@@ -216,6 +234,56 @@ export default function Profile() {
         }
     };
 
+    const handleChangePassword = async () => {
+        if (!currentPassword?.trim()) {
+            toastError('Current password is required');
+            return;
+        }
+        if (!newPassword || newPassword.length < 6) {
+            toastError('New password must be at least 6 characters');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toastError('Passwords do not match');
+            return;
+        }
+
+        setIsChangingPassword(true);
+        try {
+            const token = authUtils.getToken();
+            const res = await fetch(`${import.meta.env.VITE_SERVER_URL}/vite/dealer/change-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    email,
+                    currentPassword,
+                    newPassword
+                })
+            });
+
+            const payload = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+                const msg = payload?.message || 'Failed to change password';
+                toastError(msg);
+            } else {
+                toastSuccess(payload?.message || 'Password changed successfully');
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+                setPasswordDialogOpen(false);
+            }
+        } catch (err) {
+            console.error('Change password error:', err);
+            toastError(err?.message || 'Network error. Please try again.');
+        } finally {
+            setIsChangingPassword(false);
+        }
+    };
+
     const renderEditDialog = () => {
         const getDialogTitle = () => {
             switch (editingSection) {
@@ -240,58 +308,79 @@ export default function Profile() {
                 fullWidth
             >
                 <DialogTitle>{getDialogTitle()}</DialogTitle>
+
                 <DialogContent>
                     {editingSection === 'contact' && (
-                        <Grid container spacing={2} sx={{ mt: 1 }}>
-                            <Grid item xs={12} md={6}>
-                                <TextField
-                                    name="firstName"
-                                    label="First Name"
-                                    value={editFormData.firstName || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                />
+                        <>
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        name="firstName"
+                                        label="First Name"
+                                        value={editFormData.firstName || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={6}>
+                                    <TextField
+                                        name="lastName"
+                                        label="Last Name"
+                                        value={editFormData.lastName || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="phone"
+                                        label="Phone"
+                                        value={editFormData.phone || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="email"
+                                        label="Email"
+                                        type="email"
+                                        value={editFormData.email || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                    />
+                                </Grid>
+                                <Grid item xs={12}>
+                                    <TextField
+                                        name="primaryContactEmail"
+                                        label="Primary Contact Email"
+                                        type="email"
+                                        value={editFormData.primaryContactEmail || ''}
+                                        onChange={handleInputChange}
+                                        fullWidth
+                                        helperText="Optional"
+                                    />
+                                </Grid>
+
                             </Grid>
-                            <Grid item xs={12} md={6}>
-                                <TextField
-                                    name="lastName"
-                                    label="Last Name"
-                                    value={editFormData.lastName || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                />
+                            <Grid container spacing={2} sx={{ mt: 1 }}>
+                                <Grid item xs={12}>
+                                    <Button
+                                        variant="outlined"
+                                        onClick={() => {
+                                            setPasswordDialogOpen(true);
+                                            setCurrentPassword('');
+                                            setNewPassword('');
+                                            setConfirmPassword('');
+                                            setShowPwd(false);
+                                            setShowConfirmPwd(false);
+                                        }}
+                                    >
+                                        Change Password
+                                    </Button>
+                                </Grid>
                             </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    name="phone"
-                                    label="Phone"
-                                    value={editFormData.phone || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    name="email"
-                                    label="Email"
-                                    type="email"
-                                    value={editFormData.email || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                />
-                            </Grid>
-                            <Grid item xs={12}>
-                                <TextField
-                                    name="primaryContactEmail"
-                                    label="Primary Contact Email"
-                                    type="email"
-                                    value={editFormData.primaryContactEmail || ''}
-                                    onChange={handleInputChange}
-                                    fullWidth
-                                    helperText="Optional"
-                                />
-                            </Grid>
-                        </Grid>
+                        </>
                     )}
 
                     {editingSection === 'account' && (
@@ -447,6 +536,94 @@ export default function Profile() {
                         {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </Button>
                 </DialogActions>
+                <Dialog
+                    open={passwordDialogOpen}
+                    onClose={() => setPasswordDialogOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                >
+                    <DialogTitle>Change Password</DialogTitle>
+                    <DialogContent>
+                        <Stack spacing={2} sx={{ mt: 1 }}>
+                            <TextField
+                                label="Current Password"
+                                type="password"
+                                value={currentPassword}
+                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                fullWidth
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Lock />
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+
+                            <TextField
+                                label="New Password"
+                                type={showPwd ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                fullWidth
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Lock />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowPwd(s => !s)}
+                                                edge="end"
+                                                size="large"
+                                            >
+                                                {showPwd ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+
+                            <TextField
+                                label="Confirm New Password"
+                                type={showConfirmPwd ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                fullWidth
+                                InputProps={{
+                                    startAdornment: (
+                                        <InputAdornment position="start">
+                                            <Lock />
+                                        </InputAdornment>
+                                    ),
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton
+                                                onClick={() => setShowConfirmPwd(s => !s)}
+                                                edge="end"
+                                                size="large"
+                                            >
+                                                {showConfirmPwd ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    )
+                                }}
+                            />
+                        </Stack>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setPasswordDialogOpen(false)}>Cancel</Button>
+                        <Button
+                            onClick={handleChangePassword}
+                            variant="contained"
+                            disabled={isChangingPassword}
+                        >
+                            {isChangingPassword ? 'Changing...' : 'Change Password'}
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Dialog>
         );
     };

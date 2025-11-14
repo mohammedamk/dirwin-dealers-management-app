@@ -138,8 +138,15 @@ const SignupForm = ({ onSignup }) => {
 
         if (response.status === 200) {
           const data = await response.json();
-          // console.log("data............", data.predictions);
-          setShopSuggestions(Array.isArray(data?.predictions) ? data.predictions : []);
+          // const now = new Date();
+          // const formattedTime = now.toLocaleTimeString("en-US", {
+          //   hour: "2-digit",
+          //   minute: "2-digit",
+          //   second: "2-digit"
+          // }) + `.${now.getMilliseconds()}`;
+
+          // console.log("data............", formattedTime, "   ddddddddddddddd   ", data?.results);
+          setShopSuggestions(Array.isArray(data?.results) ? data.results : []);
         }
       }
     } catch (error) {

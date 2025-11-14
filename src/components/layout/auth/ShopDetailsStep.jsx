@@ -7,7 +7,7 @@ import {
   , Autocomplete
   , Alert
 } from '@mui/material';
-import React from 'react'
+import React, { useEffect } from 'react'
 
 export default function ShopDetailsStep({
   setFormData,
@@ -24,6 +24,13 @@ export default function ShopDetailsStep({
   setShopSuggestions,
   setErrors
 }) {
+
+  // useEffect(() => {
+  //   console.log("shopsuggestions updated:", shopSuggestions);
+  //   console.log("Number of suggestions:", shopSuggestions.length);
+  //   console.log("First suggestion:", shopSuggestions[0]);
+  // }, [shopSuggestions]);
+
   return (
     <Zoom in={true}>
       <Box>
@@ -32,6 +39,13 @@ export default function ShopDetailsStep({
           <Typography variant="h6">Shop Information</Typography>
         </Box>
 
+        
+        {/* <Box sx={{ mb: 1, p: 1, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
+          <Typography variant="caption">
+            Debug: {shopSuggestions.length} suggestions found
+          </Typography>
+        </Box> */}
+
         <Autocomplete
           options={shopSuggestions}
           freeSolo
@@ -39,6 +53,7 @@ export default function ShopDetailsStep({
           inputValue={shopInput}
           loading={shopValidationLoading}
           onInputChange={(_, newInput) => {
+            // console.log("Input changed to:", newInput);
             setShopInput(newInput);
             setSelectedShop(null);
             setFormData(prev => ({ ...prev, shopName: newInput }));
@@ -50,34 +65,32 @@ export default function ShopDetailsStep({
             }
           }}
           onChange={(_, newValue) => {
+            // console.log("Selection changed:", newValue);
             setSelectedShop(newValue);
             if (newValue) {
-              const mainText =
-                newValue?.structured_formatting?.main_text ||
-                newValue?.terms?.[0]?.value ||
-                '';
-              setFormData(prev => ({ ...prev, shopName: mainText }));
+              setFormData(prev => ({ ...prev, shopName: newValue.name }));
               setErrors(prev => ({ ...prev, shopName: '' }));
               setShopValidationSuccess(true);
             } else {
               setShopValidationSuccess(false);
             }
           }}
-          isOptionEqualToValue={(opt, val) => opt.place_id === val.place_id}
-          getOptionLabel={(opt) => {
-            if (typeof opt === 'string') return opt;
-            const main = opt?.structured_formatting?.main_text ?? '';
-            const desc = opt?.description ?? '';
-            return main ? main : desc;
+          isOptionEqualToValue={(option, value) => {
+            const isEqual = option?.place_id === value?.place_id;
+            // console.log("Option equality check:", option, value, isEqual);
+            return isEqual;
+          }}
+          getOptionLabel={(option) => {
+            if (typeof option === "string") return option;
+            return option?.name || "";
           }}
           renderOption={(props, option) => {
-            const main = option?.structured_formatting?.main_text ?? '';
-            const desc = option?.description ?? '';
+            // console.log("Rendering option:", option);
             return (
               <li {...props} key={option.place_id}>
                 <Box>
-                  <Typography fontWeight={600}>{main}</Typography>
-                  <Typography variant="caption">{desc}</Typography>
+                  <Typography fontWeight={600}>{option.name}</Typography>
+                  <Typography variant="caption">{option.address}</Typography>
                 </Box>
               </li>
             );
@@ -85,14 +98,16 @@ export default function ShopDetailsStep({
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Search your shop on Google"
+              label="Type your full business name. If it doesn’t appear, keep typing to load more results."
+              placeholder='Search your shop on Google'
               fullWidth
               error={!!getError('shopName')}
-              helperText={getError('shopName') || "Type at least 3 characters, then select your shop from the list"}
+              helperText={getError('shopName') || "Type at least 3 characters, then select your shop"}
               sx={{ mb: 2 }}
             />
           )}
           noOptionsText={shopInput.length < 3 ? 'Keep typing your business name..' : 'No matches found'}
+          filterOptions={(x) => x}
         />
         {shopValidationSuccess && (
           <Alert severity="success" sx={{ mt: 1 }}>

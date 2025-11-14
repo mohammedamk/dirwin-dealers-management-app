@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
     Box,
     Typography,
-    CircularProgress,
     TextField,
     Link,
 } from '@mui/material';
