@@ -31,6 +31,7 @@ const ForgotPassword = () => {
 
   const [errors, setErrors] = useState({});
   const [serverMessage, setServerMessage] = useState('');
+  const [serverSeverity, setServerSeverity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -55,6 +56,7 @@ const ForgotPassword = () => {
 
   const clearMessages = () => {
     setServerMessage('');
+    setServerSeverity('');
     setErrors({});
   };
 
@@ -81,16 +83,19 @@ const ForgotPassword = () => {
       if (!res.ok) {
         const msg = payload?.message || 'Failed to send OTP. Please try again.';
         toastError(msg);
+        setServerSeverity('error');
         setServerMessage(msg);
       } else {
         const msg = payload?.message || 'OTP sent to your email.';
         toastSuccess(msg);
+        setServerSeverity('success');
         setServerMessage(msg);
         setStep('enterOTP');
       }
     } catch (err) {
       const msg = err?.message || 'Network error. Please try again.';
       toastError(msg);
+      setServerSeverity('error');
       setServerMessage(msg);
     } finally {
       setIsLoading(false);
@@ -120,15 +125,18 @@ const ForgotPassword = () => {
       if (!res.ok) {
         const msg = payload?.message || 'OTP verification failed. Please try again.';
         toastError(msg);
+        setServerSeverity('error');
         setServerMessage(msg);
       } else {
         const token = payload?.resetToken || payload?.token;
         if (!token) {
           const msg = 'Server did not return a reset token.';
           toastError(msg);
+          setServerSeverity('error');
           setServerMessage(msg);
         } else {
           toastSuccess(payload?.message || 'OTP verified. You can set a new password.');
+          setServerSeverity('success');
           setResetToken(token);
           setStep('enterNewPassword');
         }
@@ -136,6 +144,7 @@ const ForgotPassword = () => {
     } catch (err) {
       const msg = err?.message || 'Network error. Please try again.';
       toastError(msg);
+      setServerSeverity('error');
       setServerMessage(msg);
     } finally {
       setIsLoading(false);
@@ -173,10 +182,12 @@ const ForgotPassword = () => {
       if (!res.ok) {
         const msg = payload?.message || 'Failed to reset password. Please try again.';
         toastError(msg);
+        setServerSeverity('error');
         setServerMessage(msg);
       } else {
         const msg = payload?.message || 'Password reset successful. Redirecting to login...';
         toastSuccess(msg);
+        setServerSeverity('success');
         setServerMessage(msg);
         setStep('success');
         setTimeout(() => navigate('/login'), 2000);
@@ -184,6 +195,7 @@ const ForgotPassword = () => {
     } catch (err) {
       const msg = err?.message || 'Network error. Please try again.';
       toastError(msg);
+      setServerSeverity('error');
       setServerMessage(msg);
     } finally {
       setIsLoading(false);
@@ -230,7 +242,7 @@ const ForgotPassword = () => {
         </Box>
 
         {serverMessage && (
-          <Alert severity={errors && Object.keys(errors).length ? 'error' : 'success'} sx={{ mb: 2 }}>
+          <Alert severity={serverSeverity || (errors && Object.keys(errors).length ? 'error' : 'info')} sx={{ mb: 2 }}>
             {serverMessage}
           </Alert>
         )}
