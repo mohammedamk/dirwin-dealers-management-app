@@ -9,7 +9,9 @@ import {
   Alert,
   CircularProgress,
   InputAdornment,
-  IconButton
+  IconButton,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Email as EmailIcon,
@@ -34,6 +36,7 @@ const ForgotPassword = () => {
   const [serverSeverity, setServerSeverity] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const navigate = useNavigate();
 
@@ -139,6 +142,7 @@ const ForgotPassword = () => {
           setServerSeverity('success');
           setResetToken(token);
           setStep('enterNewPassword');
+          setTermsAccepted(payload?.termsAccepted);
         }
       }
     } catch (err) {
@@ -418,12 +422,37 @@ const ForgotPassword = () => {
               }}
             />
 
+            <Box sx={{ mt: 3 }}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    name="termsAccepted"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                  />
+                }
+                label={
+                  <Typography variant="body2">
+                    I accept the{' '}
+                    <Button
+                      variant="text"
+                      size="small"
+                      sx={{ textTransform: 'none' }}
+                      target='_blank'
+                      href={`${import.meta.env.VITE_SERVER_URL}/uploads/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}>
+                      Terms and Conditions
+                    </Button>
+                  </Typography>
+                }
+              />
+            </Box>
+
             <Button
               type="submit"
               fullWidth
               variant="contained"
               size="large"
-              disabled={isLoading}
+              disabled={isLoading || !termsAccepted}
               sx={{ mt: 3, mb: 2, py: 1.5 }}
             >
               {isLoading ? <CircularProgress size={24} /> : 'Reset Password'}
