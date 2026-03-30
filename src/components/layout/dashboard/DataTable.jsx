@@ -12,6 +12,7 @@ import {
   IconButton,
   Skeleton,
   Button,
+  Chip,
 } from '@mui/material';
 import {
   Download as DownloadIcon,
@@ -77,6 +78,7 @@ export default function DataTable({
               <TableCell align="center">State</TableCell>
               <TableCell align="center">City</TableCell>
               <TableCell align="center">Assembly Fee</TableCell>
+              <TableCell align="center">Est. Completion Date</TableCell>
               <TableCell align="center">Created at</TableCell>
               <TableCell align="center">Invoice</TableCell>
               <TableCell align="center">Actions</TableCell>
@@ -101,7 +103,8 @@ export default function DataTable({
                       city,
                       assemblyFee,
                       createdAt,
-                      assignment
+                      assignment,
+                      estAssemblyCompDate,
                     }) => {
                       const products = lineItems.map(item => item.title).join(', ');
                       return (
@@ -121,6 +124,11 @@ export default function DataTable({
                               ? `${Number(assemblyFee).toFixed(2)}`
                               : "N/A"}
                           </TableCell>
+                          <TableCell align="center">
+                            {estAssemblyCompDate
+                              ? new Date(estAssemblyCompDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+                              : "N/A"}
+                          </TableCell>
                           <TableCell align="right">
                             {new Date(createdAt).toLocaleDateString()}
                           </TableCell>
@@ -138,12 +146,18 @@ export default function DataTable({
                           </TableCell>
 
                           <TableCell align="center">
-                            {(assignment === "PENDING" || !assignment) ? <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                            {assignment === "EXPIRED" ? (
+                              <Chip
+                                label='Expired'
+                                color='error'
+                                variant='filled'
+                                size='small'/>
+                            ) : (assignment === "PENDING" || !assignment) ? <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
                               <Button
                                 variant="contained"
                                 color="success"
                                 size="small"
-                                onClick={() => handleOpenConfirmModal("APPROVED", orderId)}
+                                onClick={() => handleOpenConfirmModal("APPROVED", orderId, estAssemblyCompDate)}
                               >
                                 Accept
                               </Button>
@@ -194,7 +208,7 @@ const TableRowsLoader = ({ rowsNum }) => {
       <TableCell component="th" scope="row">
         <Skeleton animation="wave" variant="text" />
       </TableCell>
-      {Array.from({ length: 10 }).map((d, i) => {
+      {Array.from({ length: 11 }).map((d, i) => {
         return (
           <TableCell key={i + 1}>
             <Skeleton animation="wave" variant="text" />

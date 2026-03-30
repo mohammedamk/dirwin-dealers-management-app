@@ -29,14 +29,15 @@ export default function Orders() {
         open: false,
         actionType: '',
         orderId: '',
+        estAssemblyCompDate: null,
     });
 
-    const handleOpenConfirmModal = (actionType, orderId) => {
-        setConfirmModal({ open: true, actionType, orderId });
+    const handleOpenConfirmModal = (actionType, orderId, estAssemblyCompDate) => {
+        setConfirmModal({ open: true, actionType, orderId, estAssemblyCompDate });
     };
 
     const handleCloseConfirmModal = () => {
-        setConfirmModal({ open: false, actionType: '', orderId: '' });
+        setConfirmModal({ open: false, actionType: '', orderId: '', estAssemblyCompDate: null });
     };
 
     const fetchOrders = async () => {
@@ -160,18 +161,30 @@ export default function Orders() {
                 secondaryAction={handleCloseConfirmModal}
                 content={
                     confirmModal.actionType === "APPROVED" ? (
-                        <Typography variant="body1">
-                            By clicking <strong>‘Accept,’</strong> you confirm your agreement to assemble and fulfill this order at the stated assembly rate.
-                            This acceptance creates a binding obligation under the{' '}
-                            <Link
-                                href={`${import.meta.env.VITE_SERVER_URL}/uploads/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}
-                                target="_blank"
-                                rel="noopener"
-                                underline="hover"
-                            >
-                                Terms of Service
-                            </Link>
-                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                            <Typography variant="body1">
+                                By clicking <strong>'Accept,'</strong> you confirm your agreement to assemble and fulfill this order at the stated assembly rate.
+                                This acceptance creates a binding obligation under the{' '}
+                                <Link
+                                    href={`${import.meta.env.VITE_SERVER_URL}/uploads/external-site/dirwin_bike_assembly_service_dealer_terms_of_service.pdf`}
+                                    target="_blank"
+                                    rel="noopener"
+                                    underline="hover"
+                                >
+                                    Terms of Service
+                                </Link>
+                            </Typography>
+                            {confirmModal.estAssemblyCompDate && (
+                                <Box sx={{ p: 1.5, bgcolor: '#fff8e1', border: '1px solid #ffe082', borderRadius: 1 }}>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Estimated Completion Date
+                                    </Typography>
+                                    <Typography variant="body1" fontWeight="medium">
+                                        {new Date(confirmModal.estAssemblyCompDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                    </Typography>
+                                </Box>
+                            )}
+                        </Box>
                     ) : (
                         <Typography variant="body1">
                             Are you sure you want to reject this order?
