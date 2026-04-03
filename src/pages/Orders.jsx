@@ -105,7 +105,7 @@ export default function Orders() {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ actionType, orderId }),
+                body: JSON.stringify({ actionType, orderId, dealerId: userData._id}),
             });
 
             if (!response.ok) {
