@@ -30,14 +30,16 @@ export default function Orders() {
         actionType: '',
         orderId: '',
         estAssemblyCompDate: null,
+        editedEstCompDate: '',
     });
 
     const handleOpenConfirmModal = (actionType, orderId, estAssemblyCompDate) => {
-        setConfirmModal({ open: true, actionType, orderId, estAssemblyCompDate });
+        const editedDate = estAssemblyCompDate ? new Date(estAssemblyCompDate).toISOString().split('T')[0] : '';
+        setConfirmModal({ open: true, actionType, orderId, estAssemblyCompDate, editedEstCompDate: editedDate });
     };
 
     const handleCloseConfirmModal = () => {
-        setConfirmModal({ open: false, actionType: '', orderId: '', estAssemblyCompDate: null });
+        setConfirmModal({ open: false, actionType: '', orderId: '', estAssemblyCompDate: null, editedEstCompDate: '' });
     };
 
     const fetchOrders = async () => {
@@ -96,7 +98,7 @@ export default function Orders() {
     };
 
     const handleAssignment = async () => {
-        const { actionType, orderId } = confirmModal;
+        const { actionType, orderId, editedEstCompDate } = confirmModal;
         try {
             handleCloseConfirmModal();
             const baseUrl = import.meta.env.VITE_SERVER_URL;
@@ -105,7 +107,7 @@ export default function Orders() {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ actionType, orderId, dealerId: userData._id}),
+                body: JSON.stringify({ actionType, orderId, dealerId: userData._id, estAssemblyCompDate: editedEstCompDate || null }),
             });
 
             if (!response.ok) {
@@ -174,16 +176,26 @@ export default function Orders() {
                                     Terms of Service
                                 </Link>
                             </Typography>
-                            {confirmModal.estAssemblyCompDate && (
-                                <Box sx={{ p: 1.5, bgcolor: '#fff8e1', border: '1px solid #ffe082', borderRadius: 1 }}>
-                                    <Typography variant="body2" color="text.secondary">
-                                        Estimated Completion Date
-                                    </Typography>
-                                    <Typography variant="body1" fontWeight="medium">
-                                        {new Date(confirmModal.estAssemblyCompDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                                    </Typography>
-                                </Box>
-                            )}
+                            <Box sx={{ p: 1.5, bgcolor: '#f5f5f5', border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    Estimated Completion Date
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    value={confirmModal.editedEstCompDate}
+                                    onChange={(e) => {
+                                        setConfirmModal(prev => ({
+                                            ...prev,
+                                            editedEstCompDate: e.target.value
+                                        }));
+                                    }}
+                                    size="small"
+                                    fullWidth
+                                    InputLabelProps={{
+                                        shrink: true,
+                                    }}
+                                />
+                            </Box>
                         </Box>
                     ) : (
                         <Typography variant="body1">
