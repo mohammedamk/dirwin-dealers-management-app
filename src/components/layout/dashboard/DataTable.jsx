@@ -17,6 +17,7 @@ import {
 import {
   Download as DownloadIcon,
   Visibility as ViewIcon,
+  EditCalendar as EditCalendarIcon,
 } from '@mui/icons-material';
 import { toastError, toastSuccess } from '../../global/NotificationToast';
 
@@ -170,7 +171,16 @@ export default function DataTable({
                               >
                                 Reject
                               </Button>
-                            </Box> : "--"}
+                            </Box> : (assignment === "APPROVED" || import.meta.env.VITE_DEV_MODE === "true") ? (
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                title="Update completion date"
+                                onClick={() => handleOpenConfirmModal("UPDATE_DATE", orderId, estAssemblyCompDate)}
+                              >
+                                <EditCalendarIcon fontSize="small" />
+                              </IconButton>
+                            ) : "--"}
                           </TableCell>
                         </TableRow>
                       )

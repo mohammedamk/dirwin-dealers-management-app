@@ -153,16 +153,45 @@ export default function Orders() {
                 isLoading={isLoading}
             />
             <ConfirmationModal
-                title={confirmModal.actionType === "APPROVED" ? "Confirm Acceptance" : "Confirm Rejection"}
+                title={
+                    confirmModal.actionType === "APPROVED" ? "Confirm Acceptance" :
+                    confirmModal.actionType === "UPDATE_DATE" ? "Update Completion Date" :
+                    "Confirm Rejection"
+                }
                 isOpen={confirmModal.open}
                 onClose={handleCloseConfirmModal}
-                primaryText={confirmModal.actionType === "APPROVED" ? "Accept" : "Reject"}
+                primaryText={
+                    confirmModal.actionType === "APPROVED" ? "Accept" :
+                    confirmModal.actionType === "UPDATE_DATE" ? "Update Date" :
+                    "Reject"
+                }
                 isSuccessColor={confirmModal.actionType === "APPROVED"}
                 secondaryText={"Cancel"}
                 primaryAction={handleAssignment}
                 secondaryAction={handleCloseConfirmModal}
                 content={
-                    confirmModal.actionType === "APPROVED" ? (
+                    confirmModal.actionType === "UPDATE_DATE" ? (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            <Box sx={{ p: 1.5, bgcolor: '#fff8e1', border: '1px solid #ffe082', borderRadius: 1 }}>
+                                <Typography variant="body2" color="warning.dark">
+                                    ⚠️ Changing the completion date will notify the customer by email with the new date. Make sure this is correct before confirming.
+                                </Typography>
+                            </Box>
+                            <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                                    New Completion Date
+                                </Typography>
+                                <TextField
+                                    type="date"
+                                    value={confirmModal.editedEstCompDate}
+                                    onChange={(e) => setConfirmModal(prev => ({ ...prev, editedEstCompDate: e.target.value }))}
+                                    size="small"
+                                    fullWidth
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Box>
+                        </Box>
+                    ) : confirmModal.actionType === "APPROVED" ? (
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                             <Typography variant="body1">
                                 By clicking <strong>'Accept,'</strong> you confirm your agreement to assemble and fulfill this order at the stated assembly rate.
